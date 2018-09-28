@@ -1,3 +1,12 @@
+# `00000` Problem in Original Repo [beloglazov/zotero-scholar-citations](https://github.com/beloglazov/zotero-scholar-citations)
+
+The original extension is not working due to new Google robot checking page for some people. In this case, original extension will simply display `00000` for all items instead of notifying this failure. This could be confused with zero citing. A pull request (https://github.com/beloglazov/zotero-scholar-citations/pull/42) was submitted to original repo but has not been merged for months. If you need a fixed version of zotero-scholar-citations, you can download it [here](https://github.com/tete1030/zotero-scholar-citations/raw/my/builds/zotero-scholar-citations-1.9.4-fx.xpi).
+
+This version introduced two changes:
+
+* Fix detection of google robot checking
+* Show `No Citation Data` in failure cases instead of `00000`
+
 # Zotero Scholar Citations
 
 This is an add-on for Zotero, a research source management tool. The add-on automatically fetches numbers of citations of your Zotero items from Google Scholar and makes it possible to sort your items by the citations. Moreover, it allows batch updating the citations, as they may change over time.
