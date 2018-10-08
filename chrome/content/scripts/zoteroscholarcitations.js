@@ -1,8 +1,29 @@
 if (typeof Zotero === 'undefined') {
     Zotero = {};
 }
-Zotero.ScholarCitations = {};
 
+var { Services }  = require("resource://gre/modules/Services.jsm");
+var { Cc, Cu, Ci} = require("chrome");
+
+Zotero.VersionHeader._observe_ori = Zotero.VersionHeader.observe;
+
+Zotero.VersionHeader.observe = function (subject, topic, data) {
+    result = Zotero.VersionHeader._observe_ori(subject, topic, data);
+    try {
+        let channel = subject.QueryInterface(Components.interfaces.nsIHttpChannel);
+        let domain = channel.URI.host;
+        if (domain == "scholar.google.com") {
+            let ua = "Mozilla/5.0 (" + Math.random().toString(36).substring(2, 8) + "; " + Math.random().toString(36).substring(2, 8) + "; rv:60.0) Gecko/20100101 " + Math.random().toString(36).substring(2, 15);
+            channel.setRequestHeader('User-Agent', ua, false);
+        }
+    }
+    catch (e) {
+        Zotero.debug(e, 1);
+    }
+    return result;
+}
+
+Zotero.ScholarCitations = {};
 
 Zotero.ScholarCitations.init = function() {
     Zotero.ScholarCitations.resetState();
@@ -29,6 +50,15 @@ Zotero.ScholarCitations.notifierCallback = {
         if (event == 'add') {
             Zotero.ScholarCitations.updateItems(Zotero.Items.get(ids));
         }
+    }
+};
+
+Zotero.ScholarCitations.clearGoogleScholarCookie = function() {
+    var cookieEnumerator = Services.cookies.getCookiesFromHost("scholar.google.com");
+    while (cookieEnumerator.hasMoreElements()) {
+        let cookie = cookieEnumerator.getNext().QueryInterface(Ci.nsICookie2);
+        if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] Removing cookie: " + cookie.host + ";" + cookie.name + "=" + cookie.value);
+        Services.cookies.remove(cookie.host, cookie.name, cookie.path, false);
     }
 };
 
@@ -137,69 +167,57 @@ Zotero.ScholarCitations.generateItemUrl = function(item) {
 };
 
 Zotero.ScholarCitations.updateItem = function(item) {
-    var req = new XMLHttpRequest();
     var url = Zotero.ScholarCitations.generateItemUrl(item);
     if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] GET " + url);
-    req.open('GET', url, true);
-
-    req.onreadystatechange = function() {
-        if (req.readyState == 4) {
-            if (req.status == 200 && req.responseText.search("www.google.com/recaptcha/api.js") == -1) {
-                if (item.isRegularItem() && !item.isCollection()) {
-                    var citations = Zotero.ScholarCitations.getCitationCount(
-                            req.responseText);
-                    try {
-                        var old = item.getField('extra')
-                            if (old.length == 0 || old.search(/^(\d{5}|No Citation Data)$/) != -1) {
-                                item.setField('extra', citations);
-                            } else if (old.search(/^(\d{5}|No Citation Data) *\n/) != -1) {
-                                item.setField(
-                                        'extra',
-                                        old.replace(/^(\d{5}|No Citation Data) */, citations + ' '));
-                            } else if (old.search(/^(\d{5}|No Citation Data) *[^\n]+/) != -1) {
-                                item.setField(
-                                        'extra',
-                                        old.replace(/^(\d{5}|No Citation Data) */, citations + ' \n'));
-                            } else if (old.search(/^(\d{5}|No Citation Data)/) != -1) {
-                                item.setField(
-                                        'extra',
-                                        old.replace(/^(\d{5}|No Citation Data)/, citations));
-                            } else {
-                                item.setField('extra', citations + ' \n' + old);
-                            }
-                        item.save();
-                    } catch (e) {}
-                }
-                Zotero.ScholarCitations.updateNextItem();
-            } else if (req.status == 200 ||
-                    req.status == 403 ||
-                    req.status == 503) {
-                alert(Zotero.ScholarCitations.captchaString);
-                req2 = new XMLHttpRequest();
-                req2.open('GET', url, true);
-                req2.onreadystatechange = function() {
-                    if (req2.readyState == 4) {
-                        if (typeof Zotero.openInViewer !== 'undefined') {
-                            Zotero.openInViewer(url);
-                        } else if (typeof ZoteroStandalone !== 'undefined') {
-                            ZoteroStandalone.openInViewer(url);
-                        } else if (typeof Zotero.launchURL !== 'undefined') {
-                            Zotero.launchURL(url);
+    Zotero.HTTP.doGet(url, (req) => {
+        if (req.status == 200 && req.responseText.search("www.google.com/recaptcha/api.js") == -1) {
+            if (item.isRegularItem() && !item.isCollection()) {
+                var citations = Zotero.ScholarCitations.getCitationCount(
+                        req.responseText);
+                try {
+                    var old = item.getField('extra')
+                        if (old.length == 0 || old.search(/^(\d{5}|No Citation Data)$/) != -1) {
+                            item.setField('extra', citations);
+                        } else if (old.search(/^(\d{5}|No Citation Data) *\n/) != -1) {
+                            item.setField(
+                                    'extra',
+                                    old.replace(/^(\d{5}|No Citation Data) */, citations + ' '));
+                        } else if (old.search(/^(\d{5}|No Citation Data) *[^\n]+/) != -1) {
+                            item.setField(
+                                    'extra',
+                                    old.replace(/^(\d{5}|No Citation Data) */, citations + ' \n'));
+                        } else if (old.search(/^(\d{5}|No Citation Data)/) != -1) {
+                            item.setField(
+                                    'extra',
+                                    old.replace(/^(\d{5}|No Citation Data)/, citations));
                         } else {
-                            window.gBrowser.loadOneTab(
-                                    url, {inBackground: false});
+                            item.setField('extra', citations + ' \n' + old);
                         }
-                        Zotero.ScholarCitations.resetState();
-                    }
-                }
-                req2.send(null);
-            } else {
-                if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] req.status == " + req.status);
+                    item.save();
+                } catch (e) {}
             }
+            Zotero.ScholarCitations.updateNextItem();
+        } else if (req.status == 200 ||
+                req.status == 403 ||
+                req.status == 503) {
+            alert(Zotero.ScholarCitations.captchaString);
+            if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] req.responseText == " + req.responseText);
+            Zotero.ScholarCitations.clearGoogleScholarCookie();
+            if (typeof Zotero.openInViewer !== 'undefined') {
+                Zotero.openInViewer(url);
+            } else if (typeof ZoteroStandalone !== 'undefined') {
+                ZoteroStandalone.openInViewer(url);
+            } else if (typeof Zotero.launchURL !== 'undefined') {
+                Zotero.launchURL(url);
+            } else {
+                window.gBrowser.loadOneTab(
+                        url, {inBackground: false});
+            }
+            Zotero.ScholarCitations.resetState();
+        } else {
+            if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] req.status == " + req.status);
         }
-    };
-
-    req.send(null);
+    }, null, null)
 };
 
 Zotero.ScholarCitations.fillZeros = function(number) {
