@@ -139,6 +139,7 @@ Zotero.ScholarCitations.generateItemUrl = function(item) {
 Zotero.ScholarCitations.updateItem = function(item) {
     var req = new XMLHttpRequest();
     var url = Zotero.ScholarCitations.generateItemUrl(item);
+    if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] GET " + url);
     req.open('GET', url, true);
 
     req.onreadystatechange = function() {
@@ -192,6 +193,8 @@ Zotero.ScholarCitations.updateItem = function(item) {
                     }
                 }
                 req2.send(null);
+            } else {
+                if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] req.status == " + req.status);
             }
         }
     };
