@@ -9,36 +9,26 @@ var items = [
     'title': 'Energy-aware resource allocation heuristics for efficient management of data centers for cloud computing',
     'date': '2012',
     'creators': [{
-        'ref': {
-            'firstName': 'Anton',
-            'lastName': 'Beloglazov'
-        }
+        'firstName': 'Anton',
+        'lastName': 'Beloglazov'
     }, {
-        'ref': {
-            'firstName': 'Jemal',
-            'lastName': 'Abawajy'
-        }
+        'firstName': 'Jemal',
+        'lastName': 'Abawajy'
+
     }, {
-        'ref': {
-            'firstName': 'Rajkumar',
-            'lastName': 'Buyya'
-        }
+        'firstName': 'Rajkumar',
+        'lastName': 'Buyya'
     }]
-},
-{
+},{
     'citations': 50,
     'title': 'Optimal value of information in graphical models',
     'date': '2009',
     'creators': [{
-        'ref': {
-            'firstName': 'Carlos',
-            'lastName': 'Guestrin',
-        }
+        'firstName': 'Carlos',
+        'lastName': 'Guestrin',
     }, {
-        'ref': {
-            'firstName': 'CMU',
-            'lastName': 'EDU',
-        }
+        'firstName': 'CMU',
+        'lastName': 'EDU',
     }]
 }];
 
@@ -81,4 +71,3 @@ suite('Zotero Scholar Citations', function() {
 
 
 });
-
