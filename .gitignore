@@ -1,2 +1,4 @@
 .project
 node_modules/
+build/
+builds/
