@@ -18,10 +18,10 @@
     },
     "scripts": {
         "build": "run-script-os",
-        "build:win32": "MD build || zip -r build/zsc-%npm_package_version%-fx.xpi chrome/* chrome.manifest install.rdf",
+        "build:win32": "MD build & zip -r build/zsc-%npm_package_version%-fx.xpi chrome/* chrome.manifest install.rdf",
         "build:linux": "build.sh",
         "clean": "run-script-os",
-        "clean:win32": "RD /S /Q coverage .nyc_output || RD /S /Q build",
+        "clean:win32": "RD /S /Q coverage .nyc_output & RD /S /Q build",
         "clean:linux": "rm -rf coverage .nyc_output build",
         "test": "nyc --reporter=html --reporter=text-summary mocha --ui tdd"
     },
