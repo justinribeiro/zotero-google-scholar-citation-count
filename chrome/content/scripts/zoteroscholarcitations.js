@@ -118,14 +118,14 @@ Zotero.ScholarCitations.updateNextItem = function() {
 Zotero.ScholarCitations.generateItemUrl = function(item) {
     var baseUrl = 'https://scholar.google.com/';
     var url = baseUrl +
-        'scholar?hl=en&as_q=' +
-        encodeURIComponent(item.getField('title')).replace(/ /g, '+') +
-        '&as_occt=title&num=1';
+        'scholar?hl=en&as_q=' + item.getField('title') + '&as_occt=title&num=1';
 
     var creators = item.getCreators();
     if (creators.length > 0) {
-        url += '&as_sauthors=' +
-            encodeURIComponent(creators[0].lastName).replace(/ /g, '+');
+        url += '&as_sauthors=';
+        for each (creator in creators) {
+            url += creator.lastName + ' ';
+        }
     } else {
         var date = item.getField('date');
         if (date != '') {
@@ -133,7 +133,7 @@ Zotero.ScholarCitations.generateItemUrl = function(item) {
         }
     }
 
-    return url;
+    return encodeURI(url);
 };
 
 Zotero.ScholarCitations.updateItem = function(item) {
