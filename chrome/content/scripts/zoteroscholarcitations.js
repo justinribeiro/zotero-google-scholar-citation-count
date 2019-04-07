@@ -123,9 +123,9 @@ Zotero.ScholarCitations.generateItemUrl = function(item) {
     var creators = item.getCreators();
     if (creators.length > 0) {
         url += '&as_sauthors=';
-        for each (creator in creators) {
+        creators.forEach(function (creator) {
             url += creator.lastName + ' ';
-        }
+        });
     } else {
         var date = item.getField('date');
         if (date != '') {
@@ -204,7 +204,7 @@ Zotero.ScholarCitations.updateItem = function(item) {
 
 Zotero.ScholarCitations.fillZeros = function(number) {
     var output = '';
-    var cnt = 5 - number.length;
+    var cnt = 7 - number.length;
     for (var i = 0; i < cnt; i++) {
         output += '0';
     }
@@ -227,7 +227,7 @@ Zotero.ScholarCitations.getCitationCount = function(responseText) {
     var citeExists = responseText.search('Cited by');
     if (citeExists == -1) {
         if (resultExists)
-            return '00000';
+            return '0000000';
         else
             return 'No Citation Data';
     }
