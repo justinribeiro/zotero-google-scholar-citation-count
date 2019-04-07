@@ -24,11 +24,11 @@ var items = [
     'title': 'Optimal value of information in graphical models',
     'date': '2009',
     'creators': [{
+        'firstName': 'Andreas',
+        'lastName': 'Krause',
+    }, {
         'firstName': 'Carlos',
         'lastName': 'Guestrin',
-    }, {
-        'firstName': 'CMU',
-        'lastName': 'EDU',
     }]
 }];
 
@@ -57,9 +57,9 @@ suite('Zotero Scholar Citations', function() {
     this.timeout(0);
 
     test('fillZeros', function() {
-        assert.equal(zsc.fillZeros(''), '00000');
-        assert.equal(zsc.fillZeros('1'), '00001');
-        assert.equal(zsc.fillZeros('32'), '00032');
+        assert.equal(zsc.fillZeros(''), '0000000');
+        assert.equal(zsc.fillZeros('1'), '0000001');
+        assert.equal(zsc.fillZeros('32'), '0000032');
     });
 
     test('fetchCitations', function() {
@@ -68,6 +68,5 @@ suite('Zotero Scholar Citations', function() {
             assert(fetchCitations(mock) > mock.citations);
         });
     });
-
 
 });
