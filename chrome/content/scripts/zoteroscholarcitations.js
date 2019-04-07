@@ -118,14 +118,14 @@ Zotero.ScholarCitations.updateNextItem = function() {
 Zotero.ScholarCitations.generateItemUrl = function(item) {
     var baseUrl = 'https://scholar.google.com/';
     var url = baseUrl +
-        'scholar?hl=en&as_q=' +
-        encodeURIComponent(item.getField('title')).replace(/ /g, '+') +
-        '&as_occt=title&num=1';
+        'scholar?hl=en&as_q=' + item.getField('title') + '&as_occt=title&num=1';
 
     var creators = item.getCreators();
     if (creators.length > 0) {
-        url += '&as_sauthors=' +
-            encodeURIComponent(creators[0].lastName).replace(/ /g, '+');
+        url += '&as_sauthors=';
+        creators.forEach(function (creator) {
+            url += creator.lastName + ' ';
+        });
     } else {
         var date = item.getField('date');
         if (date != '') {
@@ -133,7 +133,7 @@ Zotero.ScholarCitations.generateItemUrl = function(item) {
         }
     }
 
-    return url;
+    return encodeURI(url);
 };
 
 Zotero.ScholarCitations.updateItem = function(item) {
@@ -204,7 +204,7 @@ Zotero.ScholarCitations.updateItem = function(item) {
 
 Zotero.ScholarCitations.fillZeros = function(number) {
     var output = '';
-    var cnt = 5 - number.length;
+    var cnt = 7 - number.length;
     for (var i = 0; i < cnt; i++) {
         output += '0';
     }
@@ -227,7 +227,7 @@ Zotero.ScholarCitations.getCitationCount = function(responseText) {
     var citeExists = responseText.search('Cited by');
     if (citeExists == -1) {
         if (resultExists)
-            return '00000';
+            return '0000000';
         else
             return 'No Citation Data';
     }

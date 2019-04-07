@@ -6,13 +6,13 @@ When updating multiple citations in a batch, it may happen that citation queries
 
 Currently, Zotero doesn't have any special field for the number of citations, that's why it is stored in the "Extra" field. To sort by this field you have to add it in the source listing table.
 
-*Note* Apparently Zotero now supports [adding custom fields](https://github.com/beloglazov/zotero-scholar-citations/issues/37), soo this might be comming soon(tm)!
+**Note** Apparently Zotero now supports [adding custom fields](https://github.com/beloglazov/zotero-scholar-citations/issues/37), soo this might be coming soon(tm)!
 
 *IMPORTANT:* in version 1.8 the field for storing the number of citations has been changed from "Call Number" to "Extra" -- please update your column configuration.
 
 The add-on supports both versions of Zotero:
 
-  1. Download the newest version of the add-on from [the release page](https://github.com/MaxKuehn/zotero-scholar-citations/releases)
+  1. Download the lastest version of the add-on from [the release page](https://github.com/MaxKuehn/zotero-scholar-citations/releases). It's the ".xpi" file.
   1. In Zotero (Standalone) go to Tools -> Add-ons -> click the settings button in the top-right corner -> Install Add-on From File -> select the downloaded file and restart Zotero.
 
 Read about how the add-on was made: http://blog.beloglazov.info/2009/10/zotero-citations-from-scholar-en.html
@@ -21,12 +21,12 @@ Read about how the add-on was made: http://blog.beloglazov.info/2009/10/zotero-c
 
 The original maintainer [Anton Beloglazov](https://github.com/beloglazov) seems semi-active.
 
-[Texot](https://github.com/tete1030) fixed some stuff that needed fixing BADly, i.e.
+[Texot](https://github.com/tete1030) fixed some stuff that needed fixing BADLY, i.e.
 
 - Fix detection of google robot checking
 - Show `No Citation Data` in failure cases instead of `00000`
 
-But there's more to do!
+**But there's more to do!**
 
 # License
 
