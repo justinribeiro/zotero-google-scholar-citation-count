@@ -1,0 +1,32 @@
+{
+    "name": "zotero-scholar-citatations",
+    "version": "1.9.5",
+    "bugs": {
+        "url": "https://github.com/MaxKuehn/zotero-scholar-citations/issues"
+    },
+    "license": "",
+    "author": {
+        "name": "Anton Beloglazov",
+        "url": "https://beloglazov.info/"
+    },
+    "contributors": {
+        "name": "Max Kuehn"
+    },
+    "repositroy": {
+        "type": "git",
+        "url": "https://github.com/MaxKuehn/zotero-scholar-citations.git"
+    },
+    "scripts": {
+        "build": "build.sh",
+        "clean": "rm -rf build",
+        "test": "nyc --reporter=html --reporter=text-summary mocha --ui tdd"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "assert": ">=1.4.1",
+        "nyc": ">=13.3.0",
+        "sinon": ">=7.3.1",
+        "sync-request": ">=6.1.0"
+    },
+    "private": true
+}
