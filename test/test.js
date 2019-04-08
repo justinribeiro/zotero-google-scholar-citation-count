@@ -52,21 +52,93 @@ function fetchCitations(item) {
     return parseInt(zsc.getCitationCount(content));
 }
 
-
 suite('Zotero Scholar Citations', function() {
-    this.timeout(0);
+    suite('Unit Tests', function() {
+        suite('ScholarCitations', function() {
+            suite('.fillZeros()', function() {
+                test('Should fill an empty string with zeroes', function() {
+                    assert.equal(zsc.fillZeros(''), '0000000');
+                });
 
-    test('fillZeros', function() {
-        assert.equal(zsc.fillZeros(''), '0000000');
-        assert.equal(zsc.fillZeros('1'), '0000001');
-        assert.equal(zsc.fillZeros('32'), '0000032');
+                test('Should fill a non-empty string with zeroes', function() {
+                    assert.equal(zsc.fillZeros('1'), '0000001');
+                });
+
+                test('Should be idempotent', function() {
+                    assert.equal(zsc.fillZeros(zsc.fillZeros('32')), zsc.fillZeros('32'));
+                });
+
+                test('Should not change a string that\'s already too long', function() {
+                    assert.equal(zsc.fillZeros('foobarbar'), 'foobarbar');
+                });
+            });
+
+
+
+            suite('.generateItemUrl()', function () {
+                var url;
+                suiteSetup(function() {
+                    url = zsc.generateItemUrl(createMockItem(items[1]));
+                });
+
+                test('should return a URI encoded string', function() {
+                    // needs work
+                    // only catches strings that are unencoded and contains URI escape symbols
+                    assert.equal(url, encodeURI(decodeURI(url)));
+                });
+
+                test('should only search in the title', function() {
+                    assert.notEqual(url.indexOf('as_occt=title'), -1);
+                });
+
+                test('should include the entire title as exact search', function() {
+                    assert.notEqual(url.indexOf('as_epq='
+                        + 'Optimal+value+of+information+in+graphical+models'), -1);
+                });
+
+                test('should include all authors', function() {
+                    assert.notEqual(url.indexOf('as_sauthors=Krause+Guestrin'), -1);
+                });
+
+                test('should include the exact year', function() {
+                    assert.notEqual(url.indexOf('as_ylo=2009'), -1);
+                    assert.notEqual(url.indexOf('as_yhi=2009'), -1);
+                });
+
+                test('should show only one result', function() {
+                    assert.notEqual(url.indexOf('num=1'), -1);
+                });
+            });
+
+            suite('.getCitationCount()', function () {
+                test('should extract citation count from a string', function() {
+                    var text = 'foo<a href="http://foo.bar/">Cited by 42</a>bar';
+                    assert.equal(zsc.getCitationCount(text), '0000042');
+                });
+
+                test('should return explanation string, if no citation count is found', function() {
+                    var text = 'foobar';
+                    assert.equal(zsc.getCitationCount(text), 'No Citation Data');
+                });
+            });
+
+            suite('.updateItem()', function () {
+                test('should update items', function() {
+                    assert.equal(true, true);
+                });
+            });
+        });
+
     });
 
-    test('fetchCitations', function() {
-        items.forEach(function (item) {
-            var mock = createMockItem(item);
-            assert(fetchCitations(mock) > mock.citations);
+    suite('Integration Tests', function () {
+        this.timeout(0);
+
+        test('fetchCitations', function() {
+            items.forEach(function (item) {
+                var mock = createMockItem(item);
+                assert(fetchCitations(mock) > mock.citations);
+            });
         });
     });
-
 });

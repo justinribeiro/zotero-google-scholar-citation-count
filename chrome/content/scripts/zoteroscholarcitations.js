@@ -117,20 +117,22 @@ Zotero.ScholarCitations.updateNextItem = function() {
 
 Zotero.ScholarCitations.generateItemUrl = function(item) {
     var baseUrl = 'https://scholar.google.com/';
-    var url = baseUrl +
-        'scholar?hl=en&as_q=' + item.getField('title') + '&as_occt=title&num=1';
+    var url = baseUrl
+        + 'scholar?hl=en&as_q=&as_epq='
+        + item.getField('title').split(/\s/).join('+')
+        + '&as_occt=title&num=1';
 
     var creators = item.getCreators();
     if (creators.length > 0) {
         url += '&as_sauthors=';
         creators.forEach(function (creator) {
-            url += creator.lastName + ' ';
+            url += creator.lastName + '+';
         });
-    } else {
-        var date = item.getField('date');
-        if (date != '') {
-            url += '&as_ylo=' + date + '&as_yhi=' + date;
-        }
+    }
+
+    var date = item.getField('date');
+    if (date != '') {
+        url += '&as_ylo=' + date + '&as_yhi=' + date;
     }
 
     return encodeURI(url);
@@ -213,29 +215,18 @@ Zotero.ScholarCitations.fillZeros = function(number) {
 };
 
 Zotero.ScholarCitations.getCitationCount = function(responseText) {
-    if (responseText == '') {
+    var citePrefix = '>Cited by';
+    var citePrefixLen = citePrefix.length;
+    var citeCountStart = responseText.indexOf(citePrefix);
+
+    if (citeCountStart === -1) {
         return 'No Citation Data';
+    } else {
+        var citeCountEnd = responseText.indexOf('<', citeCountStart + 1);
+        var citeStr = responseText.substring(citeCountStart, citeCountEnd);
+        var citeCount = citeStr.substring(citePrefixLen + 1);
+        return Zotero.ScholarCitations.fillZeros(citeCount);
     }
-
-    var citeStringLength = 15;
-    var lengthOfCiteByStr = 9;
-    var citeArray = new Array();
-
-    // 'gs_r gs_or gs_scl' is classes of each item element in search result
-    var resultExists = responseText.match('gs_r gs_or gs_scl') ? true : false;
-
-    var citeExists = responseText.search('Cited by');
-    if (citeExists == -1) {
-        if (resultExists)
-            return '0000000';
-        else
-            return 'No Citation Data';
-    }
-
-    var tmpString = responseText.substr(citeExists, citeStringLength);
-    var end = tmpString.indexOf('<') - lengthOfCiteByStr;
-    return Zotero.ScholarCitations.fillZeros(
-            tmpString.substr(lengthOfCiteByStr, end));
 };
 
 if (typeof window !== 'undefined') {
