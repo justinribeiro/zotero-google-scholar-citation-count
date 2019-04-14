@@ -28,7 +28,7 @@ The original maintainer [Anton Beloglazov](https://github.com/beloglazov) seems 
 
 ## RoadMap
 
-[RoadMap](https://github.com/MaxKuehn/zotero-scholar-citations)
+[RoadMap](https://github.com/MaxKuehn/zotero-scholar-citations/RoadMap.md)
 
 ## "Extra"-Column Content Handling
 ZSC will
