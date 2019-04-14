@@ -1,6 +1,6 @@
 {
     "name": "zotero-scholar-citatations",
-    "version": "1.9.6-snapshot",
+    "version": "2.0.0-snapshot",
     "bugs": {
         "url": "https://github.com/MaxKuehn/zotero-scholar-citations/issues"
     },
@@ -17,9 +17,9 @@
         "url": "https://github.com/MaxKuehn/zotero-scholar-citations.git"
     },
     "scripts": {
-        "build": "run-script-os",
-        "build:win32": "MD build & zip -r build/zsc-%npm_package_version%-fx.xpi chrome/* chrome.manifest install.rdf",
-        "build:linux": "build.sh",
+        "package": "run-script-os",
+        "package:win32": "MD build & zip -r build/zsc-%npm_package_version%-fx.xpi chrome/* chrome.manifest install.rdf",
+        "package:linux": "build.sh",
         "clean": "run-script-os",
         "clean:win32": "RD /S /Q coverage .nyc_output & RD /S /Q build",
         "clean:linux": "rm -rf coverage .nyc_output build",
