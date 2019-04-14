@@ -12,7 +12,7 @@
         RDF:about="urn:mozilla:install-manifest"
         em:id="zoteroscholarcitations@beloglazov.info"
         em:name="Zotero Scholar Citations"
-        em:version="1.9.4"
+        em:version="2.0.0"
         em:type="2"
         em:creator="Anton Beloglazov"
         em:description="Zotero plugin for auto-fetching numbers of citations from Google Scholar"
@@ -22,7 +22,7 @@
         <em:targetApplication>
             <Description>
                 <em:id>zotero@chnm.gmu.edu</em:id>
-                <em:minVersion>3.0b1</em:minVersion>
+                <em:minVersion>5.0.66</em:minVersion>
                 <em:maxVersion>5.0.*</em:maxVersion>
             </Description>
         </em:targetApplication>
