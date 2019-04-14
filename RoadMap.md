@@ -1,8 +1,6 @@
 # RoadMap
 
 ## 2.0.1
-- use check for required field before all update opertions
-    - currently only when items are updated because they're added to zotero
 - update old citation counts to new format even if no new data is available
     - currently only "No Citation Data" fields are reformated
 
