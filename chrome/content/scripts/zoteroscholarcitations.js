@@ -1,22 +1,37 @@
-if (typeof Zotero === 'undefined') {
-    Zotero = {};
-}
-Zotero.ScholarCitations = {};
+let zsc = {
+    _captchaString: '',
+    _citeCountStrLength: 7,
+    _extraPrefix: 'ZSCC',
+    _extraEntrySep: ' \n',
+    _noData : 'NoCitationData',
+    _legacyDataRegex: /^\d{5}/,
+    _legacyNoDataRegex: /^No Citation Data/,
+    _searchblackList: new RegExp('[-+~*"]', 'g'),
+    _extraPair: /^([^:]*):\s*([^\s]*)(.*)$/
+};
 
+let isDebug = function() {
+    return typeof Zotero != 'undefined'
+        && typeof Zotero.Debug != 'undefined'
+        && Zotero.Debug.enabled;
+};
 
-Zotero.ScholarCitations.init = function() {
-    Zotero.ScholarCitations.resetState();
+// this would be soo much less ugly if this zsc was a class :/
 
-    stringBundle = document.getElementById('zoteroscholarcitations-bundle');
-    Zotero.ScholarCitations.captchaString = 'Please enter the Captcha on the page that will now open and then re-try updating the citations, or wait a while to get unblocked by Google if the Captcha is not present.';
-    Zotero.ScholarCitations.citedPrefixString = ''
-        if (stringBundle != null) {
-            Zotero.ScholarCitations.captchaString = stringBundle.getString('captchaString');
-        }
+let prefixRegex =
+    zsc._extraPrefix + ': ';
+zsc._extraPrefixRegex = new RegExp(prefixRegex);
+
+zsc.init = function() {
+    let stringBundle = document.getElementById('zoteroscholarcitations-bundle');
+    if (stringBundle != null) {
+        this._captchaString = stringBundle.getString('captchaString');
+        this._citedPrefixString = stringBundle.getString('citedPrefixString');
+    }
 
     // Register the callback in Zotero as an item observer
-    var notifierID = Zotero.Notifier.registerObserver(
-            Zotero.ScholarCitations.notifierCallback, ['item']);
+    let notifierID = Zotero.Notifier.registerObserver(
+        this.notifierCallback, ['item']);
 
     // Unregister callback when the window closes (important to avoid a memory leak)
     window.addEventListener('unload', function(e) {
@@ -24,224 +39,256 @@ Zotero.ScholarCitations.init = function() {
     }, false);
 };
 
-Zotero.ScholarCitations.notifierCallback = {
+// so citation counts will be queried for >all< items that are added to zotero!? o.O
+zsc.notifierCallback = {
     notify: function(event, type, ids, extraData) {
         if (event == 'add') {
-            Zotero.ScholarCitations.updateItems(Zotero.Items.get(ids));
+            zsc.processItems(Zotero.Items.get(ids).filter(zsc.hasRequiredFields));
         }
     }
 };
 
-Zotero.ScholarCitations.resetState = function() {
-    Zotero.ScholarCitations.current = -1;
-    Zotero.ScholarCitations.toUpdate = 0;
-    Zotero.ScholarCitations.itemsToUpdate = null;
-    Zotero.ScholarCitations.numberOfUpdatedItems = 0;
-};
+zsc.hasRequiredFields = function(item) {
+    return item.getField('title')
+        && item.getCreators().length > 0;
+}
 
-Zotero.ScholarCitations.updateSelectedEntity = function(libraryId) {
-    if (!ZoteroPane.canEdit()) {
-        ZoteroPane.displayCannotEditLibraryMessage();
+zsc.updateCollectionMenuEntry = function() {
+    if (!ZoteroPane.canEditLibrary()) {
+        alert('You lack the permission to make edit to this library.');
         return;
     }
 
-    var collection = ZoteroPane.getSelectedCollection();
-    var group = ZoteroPane.getSelectedGroup();
+    let group = ZoteroPane.getSelectedGroup();
+    if (group) {
+        this.updateGroup(ZoteroPane.getSelectedGroup());
+        return;
+    };
 
+    let collection = ZoteroPane.getSelectedCollection();
     if (collection) {
-        var items = [];
-        collection.getChildItems(false).forEach(function (item) {
-            items.push(Zotero.Items.get(item.id));
-        });
-        Zotero.ScholarCitations.updateItems(items);
-    } else if (group) {
-        if (!group.editable) {
-            alert("This group is not editable!");
-            return;
-        }
-        var items = [];
-        group.getCollections().forEach(function(collection) {
-            collection.getChildItems(false).forEach(function(item) {
-                items.push(Zotero.Items.get(item.id));
-            })
-        });
-        Zotero.ScholarCitations.updateItems(items);
-    } else {
-        Zotero.ScholarCitations.updateAll();
+        this.updateCollection(collection);
+        return;
+    }
+
+    alert('Updating citations for this type of Entry is not supported.');
+    return;
+};
+
+zsc.updateItemMenuEntries = function() {
+    if (!ZoteroPane.canEditLibrary()) {
+        alert('You lack the permission to make edit to this library.');
+        return;
+    }
+    this.processItems(ZoteroPane.getSelectedItems());
+};
+
+zsc.updateGroup = function(group) {
+    alert('Updating a Group is not yet implemented.')
+    return;
+    //this.processUpdateQueue(items);
+};
+
+zsc.updateCollection = function(collection) {
+    this.processItems(collection.getChildItems());
+    let childColls = collection.getChildCollections();
+    for (idx = 0; idx < childColls.length; ++idx) {
+        this.updateCollection(childColls[idx]);
     }
 };
 
-Zotero.ScholarCitations.updateSelectedItems = function() {
-    Zotero.ScholarCitations.updateItems(ZoteroPane.getSelectedItems());
+zsc.processItems = function(items) {
+    while (item = items.shift()) {
+        this.retrieveCitationData(item, function(item, citeCount) {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'Updating item "' + item.getField('title') + '"');
+            zsc.updateItem(item, zsc.buildCiteCountString(citeCount));
+        });
+    }
 };
 
-Zotero.ScholarCitations.updateAll = function() {
-    var items = [];
-    Zotero.Items.getAll().forEach(function (item) {
-        if (item.isRegularItem() && !item.isCollection()) {
-            var libraryId = item.getField('libraryID');
-            if (libraryId == null ||
-                    libraryId == '' ||
-                    Zotero.Libraries.isEditable(libraryId)) {
-                items.push(item);
+// TODO: make it less ugly, because holy ugly :(
+zsc.updateItem = function(item, citeCountStr) {
+    let curExtra = item.getField('extra');
+    if (curExtra.length === 0) {
+        if (isDebug()) Zotero.debug('[scholar-citations] '
+            + 'setting empty extra field to cite count');
+        item.setField('extra', citeCountStr);
+    } else if (citeCountStr.indexOf(zsc._noData) == -1) {
+        if (/:/.test(curExtra)) {
+            zsc.updateExtraPairs(curExtra, item, citeCountStr);
+        } else if (zsc._legacyDataRegex.test(curExtra)) {
+            zsc.updateExtra(zsc._legacyDataRegex
+                , curExtra, item, citeCountStr
+                , 'updating legacy extra content with new cite count');
+        } else if (zsc._legacyNoDataRegex.test(curExtra)) {
+            zsc.updateExtra(zsc._legacyNoDataRegex
+                , curExtra, item, citeCountStr
+                ,'updating legacy no-data extra content with new cite count');
+        } else {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'updating ');
+            item.setField('extra', citeCountStr + zsc._extraEntrySep + curExtra);
+        }
+    } else {
+        if (zsc._legacyNoDataRegex.test(curExtra)) {
+            zsc.updateExtra(zsc._legacyNoDataRegex
+                , curExtra, item, citeCountStr
+                ,'updating legacy no-data extra content to new format');
+        } else {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + ' not updating extra content of "'
+                + item.getField('title')
+                + '", because we didn\'t get a cite count and it\'s not a zsc field.');
+        }
+    }
+
+    try { item.saveTx(); } catch (e) {
+        if (isDebug()) Zotero.debug("[scholar-citations] "
+            + "could not update extra content: " + e);
+    }
+};
+
+zsc.updateExtraPairs = function(extra, item, citeCountStr) {
+    if (isDebug()) Zotero.debug('[scholar-citations] '
+        + 'updating extra content that contains key value pairs with new cite count');
+    let newExtra = [];
+    if (!zsc._extraPrefixRegex.test(extra)) {
+        newExtra.push(citeCountStr);
+        newExtra.push(extra);
+    } else {
+        extra.split(zsc._extraEntrySep).forEach(function(entry) {
+            let matches = entry.match(zsc._extraPair);
+            if (matches) {
+                if (matches[1].trim() === zsc._extraPrefix) {
+                    newExtra.push(citeCountStr + matches[3]);
+                } else {
+                    newExtra.push(matches.input);
+                }
+            } else {
+                newExtra.push(entry);
             }
-        }
-    });
-    Zotero.ScholarCitations.updateItems(items);
-};
-
-Zotero.ScholarCitations.updateItems = function(items) {
-    if (items.length == 0 ||
-            Zotero.ScholarCitations.numberOfUpdatedItems < Zotero.ScholarCitations.toUpdate) {
-        return;
-    }
-
-    Zotero.ScholarCitations.resetState();
-    Zotero.ScholarCitations.toUpdate = items.length;
-    Zotero.ScholarCitations.itemsToUpdate = items;
-    Zotero.ScholarCitations.updateNextItem();
-};
-
-Zotero.ScholarCitations.updateNextItem = function() {
-    Zotero.ScholarCitations.numberOfUpdatedItems++;
-
-    if (Zotero.ScholarCitations.current == Zotero.ScholarCitations.toUpdate - 1) {
-        Zotero.ScholarCitations.resetState();
-        return;
-    }
-
-    Zotero.ScholarCitations.current++;
-    Zotero.ScholarCitations.updateItem(
-            Zotero.ScholarCitations.itemsToUpdate[Zotero.ScholarCitations.current]);
-};
-
-Zotero.ScholarCitations.generateItemUrl = function(item) {
-    var baseUrl = 'https://scholar.google.com/';
-    var url = baseUrl +
-        'scholar?hl=en&as_q=' + item.getField('title') + '&as_occt=title&num=1';
-
-    var creators = item.getCreators();
-    if (creators.length > 0) {
-        url += '&as_sauthors=';
-        creators.forEach(function (creator) {
-            url += creator.lastName + ' ';
         });
-    } else {
-        var date = item.getField('date');
-        if (date != '') {
-            url += '&as_ylo=' + date + '&as_yhi=' + date;
+    }
+    item.setField('extra', newExtra.join(zsc._extraEntrySep));
+}
+
+zsc.updateExtra = function(regex, extra, item, citeCountStr, logMsg) {
+    if (isDebug()) Zotero.debug('[scholar-citations] ' + logMsg);
+    let newExtra = extra.replace(regex, citeCountStr);
+    item.setField('extra', newExtra);
+}
+
+// TODO: complex version, i.e. batching + retrying + blocking for solved captchas
+// this prob. involves some nasty callback hell shit
+// TODO: retries with random author permutations decreasing in author number :^)
+zsc.retrieveCitationData = function(item, cb) {
+    let url = this.generateItemUrl(item);
+    if (isDebug()) Zotero.debug("[scholar-citations] GET " + url);
+    let citeCount;
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
+                if (isDebug()) Zotero.debug("[scholar-citations] "
+                    + "recieved non-captcha scholar results");
+                cb(item, zsc.getCiteCount(this.responseText));
+            } else {
+                if (isDebug()) Zotero.debug("[scholar-citations] "
+                    + "received a captcha instead of a scholar result");
+                alert(zsc._captchaString);
+                if (typeof Zotero.openInViewer !== 'undefined') {
+                    Zotero.openInViewer(url);
+                } else if (typeof ZoteroStandalone !== 'undefined') {
+                    ZoteroStandalone.openInViewer(url);
+                } else if (typeof Zotero.launchURL !== 'undefined') {
+                    Zotero.launchURL(url);
+                } else {
+                    window.gBrowser.loadOneTab(url, {inBackground: false});
+                }
+            }
+        } else if (this.readyState == 4) {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'could not retrieve the google scholar data. server returned: ['
+                + xhr.status + ':'  + xhr.statusText + ']');
+        } else {
+            // request progress, I guess
         }
+    };
+    xhr.send();
+};
+
+zsc.generateItemUrl = function(item) {
+    let baseUrl = 'https://scholar.google.com/';
+    let url = baseUrl
+        + 'scholar?hl=en&as_q='
+        + zsc.cleanTitle(item.getField('title')).split(/\s/).join('+')
+        + '&as_epq=&as_occt=title&num=1';
+
+    let creators = item.getCreators();
+    if (creators && creators.length > 0) {
+        url += '&as_sauthors=';
+        url += creators[0].lastName;
+        for (let idx = 1; idx < creators.length; idx++) {
+            url += '+' + creators[idx].lastName;
+        }
+    }
+
+    let year = item.getField('year');
+    if (year) {
+        url += '&as_ylo=' + year + '&as_yhi=' + year;
     }
 
     return encodeURI(url);
 };
 
-Zotero.ScholarCitations.updateItem = function(item) {
-    var req = new XMLHttpRequest();
-    var url = Zotero.ScholarCitations.generateItemUrl(item);
-    if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] GET " + url);
-    req.open('GET', url, true);
-
-    req.onreadystatechange = function() {
-        if (req.readyState == 4) {
-            if (req.status == 200 && req.responseText.search("www.google.com/recaptcha/api.js") == -1) {
-                if (item.isRegularItem() && !item.isCollection()) {
-                    var citations = Zotero.ScholarCitations.getCitationCount(
-                            req.responseText);
-                    try {
-                        var old = item.getField('extra')
-                            if (old.length == 0 || old.search(/^(\d{5}|No Citation Data)$/) != -1) {
-                                item.setField('extra', citations);
-                            } else if (old.search(/^(\d{5}|No Citation Data) *\n/) != -1) {
-                                item.setField(
-                                        'extra',
-                                        old.replace(/^(\d{5}|No Citation Data) */, citations + ' '));
-                            } else if (old.search(/^(\d{5}|No Citation Data) *[^\n]+/) != -1) {
-                                item.setField(
-                                        'extra',
-                                        old.replace(/^(\d{5}|No Citation Data) */, citations + ' \n'));
-                            } else if (old.search(/^(\d{5}|No Citation Data)/) != -1) {
-                                item.setField(
-                                        'extra',
-                                        old.replace(/^(\d{5}|No Citation Data)/, citations));
-                            } else {
-                                item.setField('extra', citations + ' \n' + old);
-                            }
-                        item.save();
-                    } catch (e) {}
-                }
-                Zotero.ScholarCitations.updateNextItem();
-            } else if (req.status == 200 ||
-                    req.status == 403 ||
-                    req.status == 503) {
-                alert(Zotero.ScholarCitations.captchaString);
-                req2 = new XMLHttpRequest();
-                req2.open('GET', url, true);
-                req2.onreadystatechange = function() {
-                    if (req2.readyState == 4) {
-                        if (typeof Zotero.openInViewer !== 'undefined') {
-                            Zotero.openInViewer(url);
-                        } else if (typeof ZoteroStandalone !== 'undefined') {
-                            ZoteroStandalone.openInViewer(url);
-                        } else if (typeof Zotero.launchURL !== 'undefined') {
-                            Zotero.launchURL(url);
-                        } else {
-                            window.gBrowser.loadOneTab(
-                                    url, {inBackground: false});
-                        }
-                        Zotero.ScholarCitations.resetState();
-                    }
-                }
-                req2.send(null);
-            } else {
-                if (Zotero.Debug.enabled) Zotero.debug("[scholar-citations] req.status == " + req.status);
-            }
-        }
-    };
-
-    req.send(null);
+zsc.cleanTitle = function(title) {
+    return title.replace(zsc._searchblackList, ' ');
 };
 
-Zotero.ScholarCitations.fillZeros = function(number) {
-    var output = '';
-    var cnt = 7 - number.length;
-    for (var i = 0; i < cnt; i++) {
-        output += '0';
-    }
-    output += number;
+zsc.padLeftWithZeroes = function(numStr) {
+    let output = '';
+    let cnt = this._citeCountStrLength - numStr.length;
+    for (let i = 0; i < cnt; i++) { output += '0'; }
+    output += numStr;
     return output;
 };
 
-Zotero.ScholarCitations.getCitationCount = function(responseText) {
-    if (responseText == '') {
-        return 'No Citation Data';
+zsc.buildCiteCountString = function(citeCount) {
+    if (citeCount < 0)
+        return this._extraPrefix + ': ' + this._noData;
+    else
+        return this._extraPrefix + ': ' + this.padLeftWithZeroes(citeCount.toString());
+};
+
+zsc.getCiteCount = function(responseText) {
+    let citePrefix = '>Cited by';
+    let citePrefixLen = citePrefix.length;
+    let citeCountStart = responseText.indexOf(citePrefix);
+
+    if (citeCountStart === -1) {
+        return -1
+    } else {
+        let citeCountEnd = responseText.indexOf('<', citeCountStart + 1);
+        let citeStr = responseText.substring(citeCountStart, citeCountEnd);
+        let citeCount = citeStr.substring(citePrefixLen + 1);
+        return parseInt(citeCount);
     }
-
-    var citeStringLength = 15;
-    var lengthOfCiteByStr = 9;
-    var citeArray = new Array();
-
-    // 'gs_r gs_or gs_scl' is classes of each item element in search result
-    var resultExists = responseText.match('gs_r gs_or gs_scl') ? true : false;
-
-    var citeExists = responseText.search('Cited by');
-    if (citeExists == -1) {
-        if (resultExists)
-            return '0000000';
-        else
-            return 'No Citation Data';
-    }
-
-    var tmpString = responseText.substr(citeExists, citeStringLength);
-    var end = tmpString.indexOf('<') - lengthOfCiteByStr;
-    return Zotero.ScholarCitations.fillZeros(
-            tmpString.substr(lengthOfCiteByStr, end));
 };
 
 if (typeof window !== 'undefined') {
-    window.addEventListener('load', function(e) {
-        Zotero.ScholarCitations.init();
-    }, false);
+    window.addEventListener('load', function(e) { zsc.init(); }, false);
+
+    // API export for Zotero UI
+    // Can't imagine those to not exist tbh
+    if (!window.Zotero) window.Zotero = {};
+    if (!window.Zotero.ScholarCitations) window.Zotero.ScholarCitations = {};
+    // note sure about any of this
+    window.Zotero.ScholarCitations.updateCollectionMenuEntry
+        = function() { zsc.updateCollectionMenuEntry(); };
+    window.Zotero.ScholarCitations.updateItemMenuEntries
+        = function() { zsc.updateItemMenuEntries(); };
 }
 
-module.exports = Zotero.ScholarCitations;
+if (typeof module !== 'undefined') module.exports = zsc;

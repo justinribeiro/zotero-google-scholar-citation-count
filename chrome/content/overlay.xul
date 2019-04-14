@@ -16,19 +16,11 @@
             src="chrome://zoteroscholarcitations/locale/zoteroscholarcitations.properties"/>
     </stringbundleset>
 
-    <menupopup id="zotero-tb-actions-popup">
-        <menuitem
-            id="zoteroscholarcitations-tb-actions-export-playground"
-            label="&zotero.scholarcitations.updateAll.label;"
-            insertbefore="zotero-tb-actions-utilities-separator"
-            oncommand="Zotero.ScholarCitations.updateAll();"/>
-    </menupopup>
-
     <popup id="zotero-collectionmenu">
         <menuitem
             id="zotero-collectionmenu-scholarcitations"
-            label="&zotero.scholarcitations.update.label;"
-            oncommand="Zotero.ScholarCitations.updateSelectedEntity()"/>
+            label="&zotero.scholarcitations.updateCol.label;"
+            oncommand="Zotero.ScholarCitations.updateCollectionMenuEntry()"/>
     </popup>
 
     <popup
@@ -36,6 +28,6 @@
         <menuitem
             id="zotero-itemmenu-scholarcitations"
             label="&zotero.scholarcitations.update.label;"
-            oncommand="Zotero.ScholarCitations.updateSelectedItems()"/>
+            oncommand="Zotero.ScholarCitations.updateItemMenuEntries()"/>
     </popup>
 </overlay>
