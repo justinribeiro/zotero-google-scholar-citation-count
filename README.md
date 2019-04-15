@@ -30,12 +30,28 @@ The original maintainer [Anton Beloglazov](https://github.com/beloglazov) seems 
 
 [RoadMap](https://github.com/MaxKuehn/zotero-scholar-citations/RoadMap.md)
 
-## "Extra"-Column Content Handling
+## Extra Column Info
+
+### New Format in 2.0.x
+Version 2.0.0 introduced a new format for storing the citation count, i.e. `ZSCC: 0000001`. Unfortunately that means existing entries are incompatible in terms of sorting.
+
+#### Migration Tips
+If you just straight up update your entire collection you're bound to run into a captcha. Once you do run into one, all following update request will fail and you will be prompted for each and every one of them. Consider updating your collection in batches of 5-10 items.
+
+This limitation is a major inconvenience and fixing or at least alleviating it is the first thing on the priorty list (see the RoadMap).
+
+### Staleness
+As of Version 2.0.1 items whose citation count could not be updated will be marked with a trailing `s`, e.g. `ZSCC: 0000042s` to signal the user that ZSCC was unable to update the number of citations.
+
+### Existing "Extra"-Column Content
 ZSC will
-- update legacy ZSC "extra"-content, i.e. 5 digit citation counts and "No Citation Data" strings
-- respect content that is in the "Extra"-field as long as it's in `key: value` format
+- update legacy ZSC "extra"-content, i.e. 5 digit citation counts and "No Citation Data" entries
+- respect content that is already in the "Extra"-field
+    - ZSC will simply prepend the citation count to any existing content, so you can sort by the extra
     - this includes arXiv, DOI, OCLC, etc.
-    - problably not combination of those unless they are ` \n` separated
+
+#### When Updates fail
+Consider temporary cutting out/deleting the "Extra" content. ZSC will update the citation count. After that you can simply append the previously removed.
 
 ## Why is ZSC unable retrieve the citation count for item X?
 The most likely culprit is that ZSC search is too precise :^). Some Items do not have as complete of an author list on google scholar as they have in Zotero.

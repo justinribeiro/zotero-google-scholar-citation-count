@@ -119,7 +119,7 @@ suite('Unit Tests', function() {
                 let matches = 'ZSCC: 9001042 arXiv: 1337.123456'.match(zsc._extraPair);
                 assert.equal(matches[1], 'ZSCC');
                 assert.equal(matches[2], '9001042');
-                assert.equal(matches[3], ' arXiv: 1337.123456')
+                assert.equal(matches[4], ' arXiv: 1337.123456')
             });
         });
 
