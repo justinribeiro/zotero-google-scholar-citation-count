@@ -28,20 +28,20 @@ The original maintainer [Anton Beloglazov](https://github.com/beloglazov) seems 
 
 ## RoadMap
 
-[RoadMap](https://github.com/MaxKuehn/zotero-scholar-citations/RoadMap.md)
+The [RoadMap can be found here](https://github.com/MaxKuehn/zotero-scholar-citations/blob/master/RoadMap.md).
 
 ## Extra Column Info
 
 ### New Format in 2.0.x
-Version 2.0.0 introduced a new format for storing the citation count, i.e. `ZSCC: 0000001`. Unfortunately that means existing entries are incompatible in terms of sorting.
+Version 2.0.0 introduced a new format for storing the citation count, i.e. `ZSCC: 0000001`. Unfortunately that means existing pre 2.0.0 entries are incompatible in terms of sorting and you have to update them.
 
 #### Migration Tips
-If you just straight up update your entire collection you're bound to run into a captcha. Once you do run into one, all following update request will fail and you will be prompted for each and every one of them. Consider updating your collection in batches of 5-10 items.
+If you just straight up update your entire collection you're bound to run into a captcha. Once you do run into one, all following queued update request will fail and you will be prompted for each and every one of them. Consider updating your collection in batches of 5-10 items at a time.
 
 This limitation is a major inconvenience and fixing or at least alleviating it is the first thing on the priorty list (see the RoadMap).
 
 ### Staleness
-As of Version 2.0.1 items whose citation count could not be updated will be marked with a trailing `s`, e.g. `ZSCC: 0000042s` to signal the user that ZSCC was unable to update the number of citations.
+As of Version 2.0.1 items whose citation count could not be updated will be marked with a trailing `s`, e.g. `ZSCC: 0000042s`, to signal the user that ZSC was unable to update the number of citations.
 
 ### Existing "Extra"-Column Content
 ZSC will
