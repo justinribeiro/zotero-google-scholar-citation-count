@@ -4,11 +4,19 @@ let zsc = {
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
     _noData : 'NoCitationData',
-    _legacyDataRegex: /^\d{5}/,
+    _legacyDataRegex: /^(\d{5})(s?)/,
     _legacyNoDataRegex: /^No Citation Data/,
-    _searchblackList: new RegExp('[-+~*"]', 'g'),
-    _extraPair: /^([^:]*):\s*([^\s]*)(.*)$/
+    _searchblackList: new RegExp('[-+~*"]', 'g')
 };
+// _extraPair: /^([^:]*):\s*([^\s]*)(.*)$/
+
+zsc._extraPair = new RegExp(
+    '^(' + zsc._extraPrefix + '): (\\d{' + zsc._citeCountStrLength + '}|'
+    + zsc._noData + ')(s?)(.*)$'
+);
+
+zsc._extraStaleRegex = new RegExp('(' + zsc._extraPrefix + ': '
+    + '\\d{' + zsc._citeCountStrLength + '})(s?)');
 
 let isDebug = function() {
     return typeof Zotero != 'undefined'
@@ -141,11 +149,25 @@ zsc.updateItem = function(item, citeCountStr) {
             zsc.updateExtra(zsc._legacyNoDataRegex
                 , curExtra, item, citeCountStr
                 ,'updating legacy no-data extra content to new format');
+        } else if (zsc._legacyDataRegex.test(curExtra)) {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'reformatting legacy entry and marking it as stale');
+            let matches = curExtra.match(zsc._legacyDataRegex);
+            let newExtra = curExtra.replace(zsc._legacyDataRegex,
+                zsc._extraPrefix + ': 00' + matches[1] + 's');
+            item.setField('extra', newExtra);
+        } else if (zsc._extraStaleRegex.test(curExtra)) {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'marking entry as stale');
+            let matches = curExtra.match(zsc._extraStaleRegex);
+            let newExtra = curExtra.replace(zsc._extraStaleRegex, matches[1] + 's');
+            item.setField('extra', newExtra);
         } else {
             if (isDebug()) Zotero.debug('[scholar-citations] '
                 + ' not updating extra content of "'
                 + item.getField('title')
-                + '", because we didn\'t get a cite count and it\'s not a zsc field.');
+                + '", because we didn\'t get a cite count from gs '
+                + ' and it\'s not a field format zsc recognizes.');
         }
     }
 
@@ -167,7 +189,7 @@ zsc.updateExtraPairs = function(extra, item, citeCountStr) {
             let matches = entry.match(zsc._extraPair);
             if (matches) {
                 if (matches[1].trim() === zsc._extraPrefix) {
-                    newExtra.push(citeCountStr + matches[3]);
+                    newExtra.push(citeCountStr + matches[4]);
                 } else {
                     newExtra.push(matches.input);
                 }
@@ -269,17 +291,17 @@ zsc.buildCiteCountString = function(citeCount) {
 };
 
 zsc.getCiteCount = function(responseText) {
-    let citePrefix = '>Cited by';
+    let citePrefix = '>Cited by ';
     let citePrefixLen = citePrefix.length;
     let citeCountStart = responseText.indexOf(citePrefix);
 
     if (citeCountStart === -1) {
         return -1
     } else {
-        let citeCountEnd = responseText.indexOf('<', citeCountStart + 1);
+        let citeCountEnd = responseText.indexOf('<', citeCountStart);
         let citeStr = responseText.substring(citeCountStart, citeCountEnd);
-        let citeCount = citeStr.substring(citePrefixLen + 1);
-        return parseInt(citeCount);
+        let citeCount = citeStr.substring(citePrefixLen);
+        return parseInt(citeCount.trim());
     }
 };
 

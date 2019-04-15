@@ -1,9 +1,5 @@
 # RoadMap
 
-## 2.0.1
-- update old citation counts to new format even if no new data is available
-    - currently only "No Citation Data" fields are reformated
-
 ## 2.1.0
 - improve captcha handling & introduce request batching
     - if you update 200 papers you prob get captchas starting at 100 or so
