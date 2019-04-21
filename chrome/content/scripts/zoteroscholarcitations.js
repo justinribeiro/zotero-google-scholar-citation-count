@@ -4,31 +4,25 @@ let zsc = {
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
     _noData : 'NoCitationData',
-    _legacyDataRegex: /^(\d{5})(s?)/,
-    _legacyNoDataRegex: /^No Citation Data/,
-    _searchblackList: new RegExp('[-+~*"]', 'g')
+    _searchblackList: new RegExp('[-+~*":]', 'g')
 };
-// _extraPair: /^([^:]*):\s*([^\s]*)(.*)$/
 
-zsc._extraPair = new RegExp(
-    '^(' + zsc._extraPrefix + '): (\\d{' + zsc._citeCountStrLength + '}|'
-    + zsc._noData + ')(s?)(.*)$'
+zsc._extraRegex = new RegExp(
+    '^(?:(?:' + zsc._extraPrefix + ': )?)'
+    + '((?:(?:\\d{'
+      + zsc._citeCountStrLength +
+    '}|'
+      + zsc._noData +
+    ')|(?:\\d{5}|No Citation Data))?)'
+    + '\\[?s?(\\d|)\\]?'
+    + '([^]*)$'
 );
-
-zsc._extraStaleRegex = new RegExp('(' + zsc._extraPrefix + ': '
-    + '\\d{' + zsc._citeCountStrLength + '})(s?)');
 
 let isDebug = function() {
     return typeof Zotero != 'undefined'
         && typeof Zotero.Debug != 'undefined'
         && Zotero.Debug.enabled;
 };
-
-// this would be soo much less ugly if this zsc was a class :/
-
-let prefixRegex =
-    zsc._extraPrefix + ': ';
-zsc._extraPrefixRegex = new RegExp(prefixRegex);
 
 zsc.init = function() {
     let stringBundle = document.getElementById('zoteroscholarcitations-bundle');
@@ -116,96 +110,63 @@ zsc.processItems = function(items) {
         this.retrieveCitationData(item, function(item, citeCount) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
                 + 'Updating item "' + item.getField('title') + '"');
-            zsc.updateItem(item, zsc.buildCiteCountString(citeCount));
+            zsc.updateItem(item, citeCount);
         });
     }
 };
 
-// TODO: make it less ugly, because holy ugly :(
-zsc.updateItem = function(item, citeCountStr) {
+zsc.updateItem = function(item, citeCount) {
     let curExtra = item.getField('extra');
-    if (curExtra.length === 0) {
+    let matches = curExtra.match(zsc._extraRegex);
+    let newExtra = '';
+
+    if (citeCount >= 0) {
+        newExtra += zsc.buildCiteCountString(citeCount);
         if (isDebug()) Zotero.debug('[scholar-citations] '
-            + 'setting empty extra field to cite count');
-        item.setField('extra', citeCountStr);
-    } else if (citeCountStr.indexOf(zsc._noData) == -1) {
-        if (/:/.test(curExtra)) {
-            zsc.updateExtraPairs(curExtra, item, citeCountStr);
-        } else if (zsc._legacyDataRegex.test(curExtra)) {
-            zsc.updateExtra(zsc._legacyDataRegex
-                , curExtra, item, citeCountStr
-                , 'updating legacy extra content with new cite count');
-        } else if (zsc._legacyNoDataRegex.test(curExtra)) {
-            zsc.updateExtra(zsc._legacyNoDataRegex
-                , curExtra, item, citeCountStr
-                ,'updating legacy no-data extra content with new cite count');
-        } else {
-            if (isDebug()) Zotero.debug('[scholar-citations] '
-                + 'updating ');
-            item.setField('extra', citeCountStr + zsc._extraEntrySep + curExtra);
-        }
+            + 'updating extra field with new cite count');
     } else {
-        if (zsc._legacyNoDataRegex.test(curExtra)) {
-            zsc.updateExtra(zsc._legacyNoDataRegex
-                , curExtra, item, citeCountStr
-                ,'updating legacy no-data extra content to new format');
-        } else if (zsc._legacyDataRegex.test(curExtra)) {
+        if (matches[1] === '') {
             if (isDebug()) Zotero.debug('[scholar-citations] '
-                + 'reformatting legacy entry and marking it as stale');
-            let matches = curExtra.match(zsc._legacyDataRegex);
-            let newExtra = curExtra.replace(zsc._legacyDataRegex,
-                zsc._extraPrefix + ': 00' + matches[1] + 's');
-            item.setField('extra', newExtra);
-        } else if (zsc._extraStaleRegex.test(curExtra)) {
+                + 'updating extra field that contains no zsc content');
+            newExtra += zsc.buildCiteCountString(citeCount);
+        } else if (matches[1] === zsc._noData || matches[1] === 'No Citation Data') {
             if (isDebug()) Zotero.debug('[scholar-citations] '
-                + 'marking entry as stale');
-            let matches = curExtra.match(zsc._extraStaleRegex);
-            let newExtra = curExtra.replace(zsc._extraStaleRegex, matches[1] + 's');
-            item.setField('extra', newExtra);
+                + 'updating extra field that contains "no data"');
+            newExtra += zsc.buildCiteCountString(citeCount);
+        } else {
+            let oldCiteCount = parseInt(matches[1]);
+            newExtra += zsc.buildCiteCountString(oldCiteCount);
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'updating extra field that contains cite count');
+        }
+
+        if (!matches[2]) {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'marking extra field as stale');
+            newExtra += zsc.buildStalenessString(0);
         } else {
             if (isDebug()) Zotero.debug('[scholar-citations] '
-                + ' not updating extra content of "'
-                + item.getField('title')
-                + '", because we didn\'t get a cite count from gs '
-                + ' and it\'s not a field format zsc recognizes.');
+                + 'increasing staleness counter in extra field');
+            newExtra += zsc.buildStalenessString((parseInt(matches[2]) + 1) % 10);
         }
     }
+
+    if (/^\s\n/.test(matches[3]) || matches[3] === '') {
+        // do nothing, since the separator is already correct or not needed at all
+    } else if (/^\n/.test(matches[3])) {
+        newExtra += ' ';
+    } else {
+        newExtra += zsc._extraEntrySep;
+    }
+    newExtra += matches[3];
+
+    item.setField('extra', newExtra);
 
     try { item.saveTx(); } catch (e) {
         if (isDebug()) Zotero.debug("[scholar-citations] "
             + "could not update extra content: " + e);
     }
 };
-
-zsc.updateExtraPairs = function(extra, item, citeCountStr) {
-    if (isDebug()) Zotero.debug('[scholar-citations] '
-        + 'updating extra content that contains key value pairs with new cite count');
-    let newExtra = [];
-    if (!zsc._extraPrefixRegex.test(extra)) {
-        newExtra.push(citeCountStr);
-        newExtra.push(extra);
-    } else {
-        extra.split(zsc._extraEntrySep).forEach(function(entry) {
-            let matches = entry.match(zsc._extraPair);
-            if (matches) {
-                if (matches[1].trim() === zsc._extraPrefix) {
-                    newExtra.push(citeCountStr + matches[4]);
-                } else {
-                    newExtra.push(matches.input);
-                }
-            } else {
-                newExtra.push(entry);
-            }
-        });
-    }
-    item.setField('extra', newExtra.join(zsc._extraEntrySep));
-}
-
-zsc.updateExtra = function(regex, extra, item, citeCountStr, logMsg) {
-    if (isDebug()) Zotero.debug('[scholar-citations] ' + logMsg);
-    let newExtra = extra.replace(regex, citeCountStr);
-    item.setField('extra', newExtra);
-}
 
 // TODO: complex version, i.e. batching + retrying + blocking for solved captchas
 // this prob. involves some nasty callback hell shit
@@ -236,10 +197,17 @@ zsc.retrieveCitationData = function(item, cb) {
                     window.gBrowser.loadOneTab(url, {inBackground: false});
                 }
             }
+        } else if (this.readyState == 4 && this.status == 429) {
+            if (isDebug()) Zotero.debug('[scholar-citations] '
+                + 'could not retrieve the google scholar data. Server returned: ['
+                + xhr.status + ': '  + xhr.statusText + ']. '
+                + 'GS want\'s you to wait for ' + this.getResponseHeader("Content-Type")
+                + 'seconds before sending further requests.');
+
         } else if (this.readyState == 4) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
-                + 'could not retrieve the google scholar data. server returned: ['
-                + xhr.status + ':'  + xhr.statusText + ']');
+                + 'could not retrieve the google scholar data. Server returned: ['
+                + xhr.status + ': '  + xhr.statusText + ']');
         } else {
             // request progress, I guess
         }
@@ -290,13 +258,20 @@ zsc.buildCiteCountString = function(citeCount) {
         return this._extraPrefix + ': ' + this.padLeftWithZeroes(citeCount.toString());
 };
 
+zsc.buildStalenessString = function(stalenessCount) {
+    return '[s' + stalenessCount + ']';
+};
+
 zsc.getCiteCount = function(responseText) {
     let citePrefix = '>Cited by ';
     let citePrefixLen = citePrefix.length;
     let citeCountStart = responseText.indexOf(citePrefix);
 
     if (citeCountStart === -1) {
-        return -1
+        if (responseText.indexOf('gs_rt') === -1)
+            return -1;
+        else
+            return 0;
     } else {
         let citeCountEnd = responseText.indexOf('<', citeCountStart);
         let citeStr = responseText.substring(citeCountStart, citeCountEnd);

@@ -41,14 +41,17 @@ If you just straight up update your entire collection you're bound to run into a
 This limitation is a major inconvenience and fixing or at least alleviating it is the first thing on the priorty list (see the RoadMap).
 
 ### Staleness
-As of Version 2.0.1 items whose citation count could not be updated will be marked with a trailing `s`, e.g. `ZSCC: 0000042s`, to signal the user that ZSC was unable to update the number of citations.
+As of Version 2.0.2 items whose citation count could not be updated will be marked with a staleness counter `[s0]`, e.g. `ZSCC: 0000042[s0]`, to signal the user that ZSC was unable to update the number of citations.
+
+If ZSC continuesly fails to update an item, it increases the staleness count up to a maximum of 9 and then wraps around.
+
+The format of the staleness counter allows you to search for items with stale citation data by entering `[s` in Zoteros search bar.
 
 ### Existing "Extra"-Column Content
 ZSC will
 - update legacy ZSC "extra"-content, i.e. 5 digit citation counts and "No Citation Data" entries
 - respect content that is already in the "Extra"-field
-    - ZSC will simply prepend the citation count to any existing content, so you can sort by the extra
-    - this includes arXiv, DOI, OCLC, etc.
+    - ZSC will simply prepend the citation count to any existing content, so you can sort by the extra field to get the most cited items
 
 #### When Updates fail
 Consider temporary cutting out/deleting the "Extra" content. ZSC will update the citation count. After that you can simply append the previously removed.
