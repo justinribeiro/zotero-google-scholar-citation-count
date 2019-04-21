@@ -1,5 +1,41 @@
 # Notes
 
+## Item/Extra Update & Migration
+### New Cite Count
+- simple cases
+    - empty -> update
+    - ZSC only -> update
+    - legacy ZSC only -> update
+    - no ZSC content yet -> prepend
+- "complex" cases
+    - ZSC content is somewhere in extra -> update
+### Cite Count Retrieval Failed
+- simple cases
+    - empty -> add "NoData"
+    - no ZSC content yet -> prepend "NoData"
+    - legacy fields -> update to new format, but mark as stale
+    - ZSC only -> mark as stale
+- "complex cases"
+    - ZSC content somewhere in extra -> mark as stale
+### Summary
+- once migrated most of it can be done witha single regex + replace :)
+    - drop line separating and only use positive look behind?
+- exceptions, which both are easy to recognize & handle, are
+    - empty field
+    - no ZSC content yet
+
+## Staleness
+- once it's marked as stale, how to signal further staleness?
+- staleness counter? requires retrieving previous staleness count
+    - e.g. `ZSCC: 0000000` -> `ZSCC: 0000000s1` -> `ZSCC: 0000000s2`
+- problem: I'd like to find them w/ a search or sorting!
+    - soo something like `ZSCC: 0000000` -> `ZSCC: 0000000|s1` -> `ZSCC: 0000000|s2`?
+    - soo something like `ZSCC: 0000000` -> `ZSCC: 0000000(s1)` -> `ZSCC: 0000000(s2)`?
+    - soo something like `ZSCC: 0000000` -> `ZSCC: 0000000[s1]` -> `ZSCC: 0000000[s2]`?
+    - you can search for `|s`, `(s`, `[s`
+    - or add an entire field? e.g. `ZSCT: 00`
+        - meh
+
 ## Google Scholar Fu
 - different publications of the same thing have separate cite counts :/
 - google has special symbols

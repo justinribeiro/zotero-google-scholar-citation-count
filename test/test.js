@@ -102,89 +102,112 @@ suite('Unit Tests', function() {
             });
         });
 
-        suite('._extraPair', function () {
-            test('should match extra content that is only a cite count', function() {
-                let matches = 'ZSCC: 9001042'.match(zsc._extraPair);
-                assert.equal(matches[1], 'ZSCC');
-                assert.equal(matches[2], '9001042');
+
+        suite('._extraRegex', function() {
+            test('should match empty string', function() {
+                let matches = ''.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], '');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], '');
             });
 
-            test('should match extra content that is only an error msg', function() {
-                let matches = 'ZSCC: NoCitationData'.match(zsc._extraPair);
-                assert.equal(matches[1], 'ZSCC');
-                assert.equal(matches[2], 'NoCitationData');
+            test('should match zsc content', function() {
+                let matches = 'ZSCC: 0000042'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], '0000042');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], '');
             });
 
-            test('should match extra content that is prefixed with zsc content', function() {
-                let matches = 'ZSCC: 9001042 arXiv: 1337.123456'.match(zsc._extraPair);
-                assert.equal(matches[1], 'ZSCC');
-                assert.equal(matches[2], '9001042');
-                assert.equal(matches[4], ' arXiv: 1337.123456')
-            });
-        });
-
-        suite('.updateExtraPairs()', function() {
-            // need mock item
-            test('should prepend cite count if it\'s not in extra at all', function() {
-                // Given
-                let spy = sinon.spy()
-                let item = { setField: spy};
-
-                // When
-                zsc.updateExtraPairs("arXiv: 1337.123456", item, 'ZSCC: 0000000');
-
-                // Then
-                let args = spy.getCall(0).args;
-                assert(spy.calledOnce);
-                assert.equal(args[0], 'extra');
-                assert.equal(args[1], 'ZSCC: 0000000 \narXiv: 1337.123456');
+            test('should match zsc no data', function() {
+                let matches = 'ZSCC: NoCitationData'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], 'NoCitationData');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], '');
             });
 
-            test('should update existing zsc content in pole-position', function() {
-                // Given
-                let spy = sinon.spy()
-                let item = { setField: spy};
-
-                // When
-                zsc.updateExtraPairs( 'ZSCC: 0000000 \narXiv: 1337.123456', item, 'ZSCC: 0000042');
-
-                // Then
-                let args = spy.getCall(0).args;
-                assert(spy.calledOnce);
-                assert.equal(args[0], 'extra');
-                assert.equal(args[1], 'ZSCC: 0000042 \narXiv: 1337.123456');
+            test('should match zsc content marked as stale', function() {
+                let matches = 'ZSCC: 0000042[s0]'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], '0000042');
+                assert.equal(matches[2], '0');
+                assert.equal(matches[3], '');
             });
 
-            test('should update existing zsc content in non-pole-position', function() {
-                // Given
-                let spy = sinon.spy()
-                let item = { setField: spy};
-
-                // When
-                zsc.updateExtraPairs( 'arXiv: 1337.123456 \nZSCC: 0000000', item, 'ZSCC: 0000042');
-
-                // Then
-                let args = spy.getCall(0).args;
-                assert(spy.calledOnce);
-                assert.equal(args[0], 'extra');
-                assert.equal(args[1], 'arXiv: 1337.123456 \nZSCC: 0000042');
+            test('should match zsc no data marked as stale', function() {
+                let matches = 'ZSCC: NoCitationData[s0]'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], 'NoCitationData');
+                assert.equal(matches[2], '0');
+                assert.equal(matches[3], '');
             });
 
-            test('shouldn\'t change non key-value entries while updating', function() {
-                // Given
-                let spy = sinon.spy()
-                let item = { setField: spy};
-
-                // When
-                zsc.updateExtraPairs( 'ZSCC: 0000000 \nHUEHUEHUE \nFooBar', item, 'ZSCC: 0000042');
-
-                // Then
-                let args = spy.getCall(0).args;
-                assert(spy.calledOnce);
-                assert.equal(args[0], 'extra');
-                assert.equal(args[1], 'ZSCC: 0000042 \nHUEHUEHUE \nFooBar');
+            test('should match legacy zsc content', function() {
+                let matches = '00021'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], '00021');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], '');
             });
-        });
+
+            test('should match legacy zsc no data', function() {
+                let matches = 'No Citation Data'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], 'No Citation Data');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], '');
+            });
+
+            test('should match random content following zsc content', function() {
+                let matches = 'ZSCC: 0000042 \nFooBar'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], '0000042');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], ' \nFooBar');
+            });
+
+            test('should match random content following zsc no data', function() {
+                let matches = 'ZSCC: NoCitationData \nFooBar'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], 'NoCitationData');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], ' \nFooBar');
+            });
+
+            test('should match random content following zsc content marked as stale', function() {
+                let matches = 'ZSCC: 0000042[s1] \nFoo: Bar'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], '0000042');
+                assert.equal(matches[2], '1');
+                assert.equal(matches[3], ' \nFoo: Bar');
+            });
+
+            test('should match random content following zsc no data marked as stale', function() {
+                let matches = 'ZSCC: NoCitationData[s1] \nFoo: Bar'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], 'NoCitationData');
+                assert.equal(matches[2], '1');
+                assert.equal(matches[3], ' \nFoo: Bar');
+            });
+
+            test('should match random content following legacy zsc content', function() {
+                let matches = '00021 \nFoo: Bar'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], '00021');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], ' \nFoo: Bar');
+            });
+
+            test('should match random content following legacy zsc no data', function() {
+                let matches = 'No Citation Data \n Foo: Bar'.match(zsc._extraRegex);
+                assert.equal(matches.length, 4);
+                assert.equal(matches[1], 'No Citation Data');
+                assert.equal(matches[2], '');
+                assert.equal(matches[3], ' \n Foo: Bar');
+            });
+        })
 
         suite('.updateItem()', function() {
             test('should directly update an empty extra field', function() {
@@ -197,19 +220,19 @@ suite('Unit Tests', function() {
                     setField: setSpy,
                     saveTx : saveSpy
                 };
-                let citeCountStr = 'ZSCC: 0000042'
+                let citeCount = 42;
                 getStub.withArgs('extra').returns('');
 
                 // When
-                zsc.updateItem(item, citeCountStr);
+                zsc.updateItem(item, citeCount);
 
                 // Then
                 assert(getStub.calledWith('extra'));
-                assert(setSpy.calledWith('extra', citeCountStr));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042'));
                 assert(saveSpy.calledOnce);
             });
 
-            test('should update zsc own extra content', function() {
+            test('should update zsc extra content', function() {
                 // Given
                 let getStub = sinon.stub();
                 let setSpy = sinon.spy();
@@ -219,15 +242,37 @@ suite('Unit Tests', function() {
                     setField: setSpy,
                     saveTx : saveSpy
                 };
-                let citeCountStr = 'ZSCC: 0000042'
+                let citeCount = 42;
                 getStub.withArgs('extra').returns('ZSCC: 0000021');
 
                 // When
-                zsc.updateItem(item, citeCountStr);
+                zsc.updateItem(item, citeCount);
 
                 // Then
                 assert(getStub.calledWith('extra'));
-                assert(setSpy.calledWith('extra', citeCountStr));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should mark zsc extra content as stale', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCount = -1;
+                getStub.withArgs('extra').returns('ZSCC: 0000042');
+
+                // When
+                zsc.updateItem(item, citeCount);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042[s0]'));
                 assert(saveSpy.calledOnce);
             });
 
@@ -241,19 +286,19 @@ suite('Unit Tests', function() {
                     setField: setSpy,
                     saveTx : saveSpy
                 };
-                let citeCountStr = 'ZSCC: 0000042'
+                let citeCount = 42;
                 getStub.withArgs('extra').returns('FooBar');
 
                 // When
-                zsc.updateItem(item, citeCountStr);
+                zsc.updateItem(item, citeCount);
 
                 // Then
                 assert(getStub.calledWith('extra'));
-                assert(setSpy.calledWith('extra', citeCountStr + ' \nFooBar'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042' + ' \nFooBar'));
                 assert(saveSpy.calledOnce);
             });
 
-            test('should preserve existing a key-value pair while updating', function() {
+            test('should preserve extra data while updating', function() {
                 // Given
                 let getStub = sinon.stub();
                 let setSpy = sinon.spy();
@@ -263,21 +308,42 @@ suite('Unit Tests', function() {
                     setField: setSpy,
                     saveTx : saveSpy
                 };
-                let citeCountStr = 'ZSCC: 0000042'
+                let citeCount = 42;
                 getStub.withArgs('extra').returns('ZSCC: 0000021 \narXiv: FooBar');
 
                 // When
-                zsc.updateItem(item, citeCountStr);
+                zsc.updateItem(item, citeCount);
 
                 // Then
                 assert(getStub.calledWith('extra'));
-                assert(setSpy.calledWith('extra', citeCountStr + ' \narXiv: FooBar'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042 \narXiv: FooBar'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should preserve extra data marking data as stale', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCount = -1;
+                getStub.withArgs('extra').returns('ZSCC: 0000042 \narXiv: FooBar');
+
+                // When
+                zsc.updateItem(item, citeCount);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042[s0] \narXiv: FooBar'));
                 assert(saveSpy.calledOnce);
             });
 
             test('should update legacy extra entry to new format', function() {
                 // Given
-                let citeCountStr = 'ZSCC: 0000042'
                 let getStub = sinon.stub();
                 let setSpy = sinon.spy();
                 let saveSpy = sinon.spy();
@@ -286,20 +352,20 @@ suite('Unit Tests', function() {
                     setField: setSpy,
                     saveTx : saveSpy
                 };
+                let citeCount = 42;
                 getStub.withArgs('extra').returns('00021');
 
                 // When
-                zsc.updateItem(item, citeCountStr);
+                zsc.updateItem(item, citeCount);
 
                 // Then
                 assert(getStub.calledWith('extra'));
-                assert(setSpy.calledWith('extra', citeCountStr));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042'));
                 assert(saveSpy.calledOnce);
             });
 
-            test('should update legacy "no data" extra entry to new format', function() {
+            test('should update legacy "no data" extra entry with new data', function() {
                 // Given
-                let citeCountStr = 'ZSCC: 0000042'
                 let getStub = sinon.stub();
                 let setSpy = sinon.spy();
                 let saveSpy = sinon.spy();
@@ -308,20 +374,20 @@ suite('Unit Tests', function() {
                     setField: setSpy,
                     saveTx : saveSpy
                 };
+                let citeCount = 42;
                 getStub.withArgs('extra').returns('No Citation Data');
 
                 // When
-                zsc.updateItem(item, citeCountStr);
+                zsc.updateItem(item, citeCount);
 
                 // Then
                 assert(getStub.calledWith('extra'));
-                assert(setSpy.calledWith('extra', citeCountStr));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042'));
                 assert(saveSpy.calledOnce);
             });
 
             test('should update legacy "no data" entries, even when we have still no data', function() {
                 // Given
-                let citeCountStr = 'ZSCC: NoCitationData'
                 let getStub = sinon.stub();
                 let setSpy = sinon.spy();
                 let saveSpy = sinon.spy();
@@ -330,6 +396,7 @@ suite('Unit Tests', function() {
                     setField: setSpy,
                     saveTx : saveSpy
                 };
+                let citeCountStr = -1;
                 getStub.withArgs('extra').returns('No Citation Data');
 
                 // When
@@ -337,7 +404,139 @@ suite('Unit Tests', function() {
 
                 // Then
                 assert(getStub.calledWith('extra'));
-                assert(setSpy.calledWith('extra', citeCountStr));
+                assert(setSpy.calledWith('extra', 'ZSCC: NoCitationData[s0]'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should mark zsc entry as stale, if there is no new data', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCountStr = -1;
+                getStub.withArgs('extra').returns('ZSCC: 0000042');
+
+                // When
+                zsc.updateItem(item, citeCountStr);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042[s0]'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should increase staleness counter, if there is no new data', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCountStr = -1;
+                getStub.withArgs('extra').returns('ZSCC: 0000042[s0]');
+
+                // When
+                zsc.updateItem(item, citeCountStr);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042[s1]'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should wrap the staleness counter', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCountStr = -1;
+                getStub.withArgs('extra').returns('ZSCC: 0000042[s9]');
+
+                // When
+                zsc.updateItem(item, citeCountStr);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042[s0]'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should remove staleness counter, if there is new data', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCountStr = 42;
+                getStub.withArgs('extra').returns('ZSCC: 0000042[s0]');
+
+                // When
+                zsc.updateItem(item, citeCountStr);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should update legacy data and mark as stale, if there is no new data', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCountStr = -1;
+                getStub.withArgs('extra').returns('00042');
+
+                // When
+                zsc.updateItem(item, citeCountStr);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: 0000042[s0]'));
+                assert(saveSpy.calledOnce);
+            });
+
+            test('should update legacy "no data" and mark as stale, if there is no new data', function() {
+                // Given
+                let getStub = sinon.stub();
+                let setSpy = sinon.spy();
+                let saveSpy = sinon.spy();
+                let item = {
+                    getField: getStub,
+                    setField: setSpy,
+                    saveTx : saveSpy
+                };
+                let citeCountStr = -1;
+                getStub.withArgs('extra').returns('No Citation Data');
+
+                // When
+                zsc.updateItem(item, citeCountStr);
+
+                // Then
+                assert(getStub.calledWith('extra'));
+                assert(setSpy.calledWith('extra', 'ZSCC: NoCitationData[s0]'));
                 assert(saveSpy.calledOnce);
             });
         });
@@ -430,69 +629,3 @@ function createNestedCollection() {
     };
     return collection;
 }
-
-            // how to mock ZoteroPane!?
-            //suite('.updateCollectionMenuEntry()', function () {
-            //    test('should update a group if called on a group', function() {
-            //        assert.equal(false, true);
-            //    });
-
-            //    test('should update a collection if called on a collection', function() {
-            //        assert.equal(false, true);
-            //    });
-            //});
-
-            //suite('.updateItemMenuEntries()', function () {
-            //    test('', function() {
-            //        assert.equal(false, true);
-            //    });
-            //});
-
-            // suite('Queue Interaction', function() {
-            //     setup(function() {
-            //         zsc.clearUpdateQueue();
-            //     });
-
-            //      suite('.updateGroup()', function () {
-            //          test('should add all collections in the group to the update queue', function() {
-            //              assert.equal(false, true);
-            //          });
-
-            //          test('should trigger processing of the update queue', function() {
-            //              assert.equal(false, true);
-            //          });
-            //      });
-
-            //     suite('.updateCollection()', function () {
-            //         test('should add all items, subcollections as well as the items in subcollections to the update queue', function() {
-            //             let zscMock = sinon.mock(zsc);
-            //             zscMock.expects("processUpdateQueue").once();
-
-            //             //zscMock.updateCollection();
-            //             zsc.updateCollection([]);
-
-            //             zscMock.verify();
-            //         });
-
-            //         test('should trigger processing of the update queue', function() {
-            //             assert.equal(false, true);
-            //         });
-            //     });
-
-            //     suite('.updateItems()', function () {
-            //         test('should add all items to the udpate queue', function() {
-            //             assert.equal(false, true);
-            //         });
-
-            //         test('should trigger processing of the update queue', function() {
-            //             assert.equal(false, true);
-            //         });
-            //     });
-
-            //     suite('.processUpdateQueue()', function () {
-            //         test('should update items in the update queue', function() {
-            //             assert.equal(false, true);
-            //         });
-            //     });
-            // });
-
