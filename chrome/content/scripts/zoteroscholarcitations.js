@@ -268,7 +268,7 @@ zsc.getCiteCount = function(responseText) {
     let citeCountStart = responseText.indexOf(citePrefix);
 
     if (citeCountStart === -1) {
-        if (responseText.indexOf('gs_rt') === -1)
+        if (responseText.indexOf('class="gs_rt"') === -1)
             return -1;
         else
             return 0;
