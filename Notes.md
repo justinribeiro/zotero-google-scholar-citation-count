@@ -52,3 +52,7 @@
 - the export part of the module is only relevant for the npm based testing
 - what actually loads the plugin into zotero is the `<script/>`-section in overlay.xul!
 - i.e. you can just check for `window` and then write your UI callbacks whereever you want them to be
+### Zotero
+- the "Switch to single field" button saves the author name in the field "lastName"
+    - are you fucking shitting me? why the fuck would you do that?
+    - I guess I just can't assume that a field named "lastName" contains the authors last name m(
