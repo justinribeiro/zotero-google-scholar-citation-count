@@ -1,20 +1,19 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://zoteroscholarcitations/locale/overlay.dtd">
 
 <overlay
-    id="zoteroscholarcitations"
+    id="zoteroscholarcitations-overlay"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <stringbundleset>
+        <stringbundle
+            id="zoteroscholarcitations-bundle"
+            src="chrome://zoteroscholarcitations/locale/zsc.properties"/>
+    </stringbundleset>
 
     <script
         type="application/x-javascript"
-        src="chrome://zoteroscholarcitations/content/scripts/zoteroscholarcitations.js"/>
-
-    <stringbundleset id="stringbundleset">
-        <stringbundle
-            id="zoteroscholarcitations-bundle"
-            src="chrome://zoteroscholarcitations/locale/zoteroscholarcitations.properties"/>
-    </stringbundleset>
+        src="chrome://zoteroscholarcitations/content/zsc.js"/>
 
     <popup id="zotero-collectionmenu">
         <menuitem

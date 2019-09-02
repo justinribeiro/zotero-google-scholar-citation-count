@@ -1,5 +1,6 @@
 let zsc = {
     _captchaString: '',
+    _citedPrefixString: '',
     _citeCountStrLength: 7,
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
