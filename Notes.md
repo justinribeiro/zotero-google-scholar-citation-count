@@ -56,3 +56,16 @@
 - the "Switch to single field" button saves the author name in the field "lastName"
     - are you fucking shitting me? why the fuck would you do that?
     - I guess I just can't assume that a field named "lastName" contains the authors last name m(
+
+## Debug
+- Zotero is basically a (firefox-like) browser?
+- in Zotero: **Tools** > **Developer** > **Run JavaScript**
+    - then execute whatever JavaScript you want
+    - the console `toString`s the return values in the right pane
+    - might have to `JSON.stringify()` them before that
+- Friends
+    - `window`, `Zotero`, `ZoteroPane` Objects
+    - `alert(…)` works
+    - `Object.keys()` to show (enumerable) properties
+### Gotchas
+- you can easily crash that console and then you have to restart zotero :(
