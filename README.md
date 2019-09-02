@@ -73,6 +73,6 @@ You can also temporarly recreate that combination in Zotero. ZSC will then succe
 
 # License
 
-Copyright (C) 2011-2013 Anton Beloglazov?
+Copyright (C) 2011-2013 Anton Beloglazov
 
 Distributed under the Mozilla Public License 2.0 (MPL).
