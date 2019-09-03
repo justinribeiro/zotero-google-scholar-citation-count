@@ -1,6 +1,6 @@
 {
     "name": "zotero-scholar-citatations",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "bugs": {
         "url": "https://github.com/MaxKuehn/zotero-scholar-citations/issues"
     },
@@ -28,7 +28,7 @@
     "dependencies": {},
     "devDependencies": {
         "assert": ">=1.4.1",
-        "nyc": ">=13.3.0",
+        "nyc": "^14.1.1",
         "run-script-os": ">=1.0.5",
         "sinon": ">=7.3.1",
         "sync-request": ">=6.1.0"
