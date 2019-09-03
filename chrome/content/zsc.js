@@ -1,6 +1,6 @@
 let zsc = {
     _captchaString: '',
-    _citedPrefixString: '',
+    _citedPrefixString: 'Cited by ',
     _citeCountStrLength: 7,
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
@@ -203,8 +203,8 @@ zsc.retrieveCitationData = function(item, cb) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
                 + 'could not retrieve the google scholar data. Server returned: ['
                 + xhr.status + ': '  + xhr.statusText + ']. '
-                + 'GS want\'s you to wait for ' + this.getResponseHeader("Content-Type")
-                + 'seconds before sending further requests.');
+                + 'GS want\'s you to wait for ' + this.getResponseHeader("Retry-After")
+                + ' seconds before sending further requests.');
 
         } else if (this.readyState == 4) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
@@ -264,7 +264,7 @@ zsc.buildStalenessString = function(stalenessCount) {
 };
 
 zsc.getCiteCount = function(responseText) {
-    let citePrefix = '>Cited by ';
+    let citePrefix = '>' + this._citedPrefixString;
     let citePrefixLen = citePrefix.length;
     let citeCountStart = responseText.indexOf(citePrefix);
 
