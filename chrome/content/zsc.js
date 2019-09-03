@@ -5,7 +5,8 @@ let zsc = {
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
     _noData : 'NoCitationData',
-    _searchblackList: new RegExp('[-+~*":]', 'g')
+    _searchblackList: new RegExp('[-+~*":]', 'g'),
+    _baseUrl : 'https://scholar.google.com/'
 };
 
 zsc._extraRegex = new RegExp(
@@ -217,8 +218,7 @@ zsc.retrieveCitationData = function(item, cb) {
 };
 
 zsc.generateItemUrl = function(item) {
-    let baseUrl = 'https://scholar.google.com/';
-    let url = baseUrl
+    let url = this._baseUrl
         + 'scholar?hl=en&as_q='
         + zsc.cleanTitle(item.getField('title')).split(/\s/).join('+')
         + '&as_epq=&as_occt=title&num=1';

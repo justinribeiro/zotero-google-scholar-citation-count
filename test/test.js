@@ -1,4 +1,4 @@
-let zsc = require('../chrome/content/scripts/zoteroscholarcitations.js');
+let zsc = require('../chrome/content/zsc.js');
 let assert = require('assert');
 let sinon = require('sinon');
 let request = require('sync-request');
