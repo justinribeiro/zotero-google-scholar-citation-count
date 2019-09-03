@@ -1,10 +1,12 @@
 let zsc = {
     _captchaString: '',
+    _citedPrefixString: 'Cited by ',
     _citeCountStrLength: 7,
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
     _noData : 'NoCitationData',
-    _searchblackList: new RegExp('[-+~*":]', 'g')
+    _searchblackList: new RegExp('[-+~*":]', 'g'),
+    _baseUrl : 'https://scholar.google.com/'
 };
 
 zsc._extraRegex = new RegExp(
@@ -201,8 +203,8 @@ zsc.retrieveCitationData = function(item, cb) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
                 + 'could not retrieve the google scholar data. Server returned: ['
                 + xhr.status + ': '  + xhr.statusText + ']. '
-                + 'GS want\'s you to wait for ' + this.getResponseHeader("Content-Type")
-                + 'seconds before sending further requests.');
+                + 'GS want\'s you to wait for ' + this.getResponseHeader("Retry-After")
+                + ' seconds before sending further requests.');
 
         } else if (this.readyState == 4) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
@@ -216,8 +218,7 @@ zsc.retrieveCitationData = function(item, cb) {
 };
 
 zsc.generateItemUrl = function(item) {
-    let baseUrl = 'https://scholar.google.com/';
-    let url = baseUrl
+    let url = this._baseUrl
         + 'scholar?hl=en&as_q='
         + zsc.cleanTitle(item.getField('title')).split(/\s/).join('+')
         + '&as_epq=&as_occt=title&num=1';
@@ -263,7 +264,7 @@ zsc.buildStalenessString = function(stalenessCount) {
 };
 
 zsc.getCiteCount = function(responseText) {
-    let citePrefix = '>Cited by ';
+    let citePrefix = '>' + this._citedPrefixString;
     let citePrefixLen = citePrefix.length;
     let citeCountStart = responseText.indexOf(citePrefix);
 
