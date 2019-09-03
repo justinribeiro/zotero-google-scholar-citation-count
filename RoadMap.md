@@ -4,7 +4,7 @@
 - improve captcha handling & introduce request batching
     - if you update 200 papers you prob get captchas starting at 100 or so
     - all remaining request will run into a captcha an result in a prompt
-    - even when the captcha situation is resolved, those items won't be update unless another update is requested
+    - even when the captcha situation is resolved, those items won't be updated unless another update is requested
     - **solution/workaround**
         - can't get around some sort of batching/sequencing
         - if you throw 100 requests into the event loop, they'll happen no matter what

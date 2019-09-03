@@ -1,36 +1,21 @@
 # Zotero Scholar Citations (ZSC)
-
 This is an add-on for Zotero, a research source management tool. The add-on automatically fetches numbers of citations of your Zotero items from Google Scholar and makes it possible to sort your items by the citations. Moreover, it allows batch updating the citations, as they may change over time.
-
-When updating multiple citations in a batch, it may happen that citation queries are blocked by Google Scholar for multiple automated requests. If a blockage happens, the add-on opens a browser window and directs it to http://scholar.google.com/, where you should see a Captcha displayed by Google Scholar, which you need to enter to get unblocked and then re-try updating the citations. It may happen that Google Scholar displays a message like the following "We're sorry... but your computer or network may be sending automated queries. To protect our users, we can't process your request right now." In that case, the only solution is to wait for a while until Google unblocks you.
-
-Currently, Zotero doesn't have any special field for the number of citations, that's why it is stored in the "Extra" field. To sort by this field you have to add it in the source listing table.
-
-*IMPORTANT:* in version 1.8 the field for storing the number of citations has been changed from "Call Number" to "Extra" -- please update your column configuration.
-
-The add-on supports both versions of Zotero:
-
-  1. Download the lastest version of the add-on from [the release page](https://github.com/MaxKuehn/zotero-scholar-citations/releases). It's an ".xpi" file.
-  1. In Zotero (Standalone) go to Tools -> Add-ons -> click the settings button in the top-right corner -> Install Add-on From File -> select the downloaded file and restart Zotero.
 
 Read about how the add-on was made: http://blog.beloglazov.info/2009/10/zotero-citations-from-scholar-en.html
 
-## Why the Fork
+## Batching & CAPTCHAs
+When updating multiple citations in a batch, it may happen that citation queries are blocked by Google Scholar for multiple automated requests. If a blockage happens, the add-on opens a browser window and directs it to http://scholar.google.com/, where you should see a Captcha displayed by Google Scholar, which you need to enter to get unblocked and then re-try updating the citations. It may happen that Google Scholar displays a message like the following "We're sorry... but your computer or network may be sending automated queries. To protect our users, we can't process your request right now." In that case, the only solution is to wait for a while until Google unblocks you.
 
-The original maintainer [Anton Beloglazov](https://github.com/beloglazov) seems semi-active.
-
-[Texot](https://github.com/tete1030) fixed some stuff that needed fixing BADLY, that is
-
-- Fix detection of google robot checking
-- Show `No Citation Data` in failure cases instead of `00000`
-
-**But there's more that should be done!**
-
-## RoadMap
-
-The [RoadMap can be found here](https://github.com/MaxKuehn/zotero-scholar-citations/blob/master/RoadMap.md).
+## Installation
+The add-on supports Zotero Standalone:
+    1. Download the lastest version of the add-on from [the release page](https://github.com/MaxKuehn/zotero-scholar-citations/releases). It's an ".xpi" file.
+    1. In Zotero (Standalone) go to Tools -> Add-ons -> click the settings button in the top-right corner -> Install Add-on From File -> select the downloaded file and restart Zotero.
 
 ## Extra Column Info
+Currently, Zotero doesn't have any special field for the number of citations, that's why it is stored in the "Extra" field. To sort by this field you have to add it in the source listing table.
+
+### New Format in 1.8
+In version 1.8 the field for storing the number of citations has been changed from "Call Number" to "Extra" -- please update your column configuration.
 
 ### New Format in 2.0.x
 Version 2.0.0 introduced a new format for storing the citation count, i.e. `ZSCC: 0000001`. Unfortunately that means existing pre 2.0.0 entries are incompatible in terms of sorting and you have to update them.
@@ -50,11 +35,11 @@ The format of the staleness counter allows you to search for items with stale ci
 ### Existing "Extra"-Column Content
 ZSC will
 - update legacy ZSC "extra"-content, i.e. 5 digit citation counts and "No Citation Data" entries
-- respect content that is already in the "Extra"-field
-    - ZSC will simply prepend the citation count to any existing content, so you can sort by the extra field to get the most cited items
+- respect content that is already in the "Extra"-field by simply prepending the citation count to any existing content
+    - this allows you to sort by the extra field to easily get the most/least cited items
 
 #### When Updates fail
-Consider temporary cutting out/deleting the "Extra" content. ZSC will update the citation count. After that you can simply append the previously removed.
+Consider temporary cutting out/deleting the "Extra" content. ZSC will update the citation count. After that you can simply append the previously removed information.
 
 ## Why is ZSC unable retrieve the citation count for item X?
 The most likely culprit is that ZSC search is too precise :^). Some Items do not have as complete of an author list on google scholar as they have in Zotero.
@@ -70,6 +55,20 @@ Here's how you can find out weather that's the problem
 One combination of authors will certainly yield the correct search.
 
 You can also temporarly recreate that combination in Zotero. ZSC will then successfully query that item. Once you re-add the author however, updates will fail again. :(
+
+## RoadMap
+The [RoadMap can be found here](https://github.com/MaxKuehn/zotero-scholar-citations/blob/master/RoadMap.md).
+
+## Why the Fork
+
+The original maintainer [Anton Beloglazov](https://github.com/beloglazov) seems semi-active.
+
+[Texot](https://github.com/tete1030) fixed some stuff that needed fixing BADLY, that is
+
+- Fix detection of google robot checking
+- Show `No Citation Data` in failure cases instead of `00000`
+
+**But there's more that should be done!**
 
 # License
 
