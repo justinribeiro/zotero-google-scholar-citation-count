@@ -23,14 +23,15 @@
         - probably increases scholar query success rate
             - e.g. "Probabilistic roadmaps for path planning in high-dimensional configuration spaces"
             - there's different versions!
-        - big but(t): probably increases rate of false positives
+        - big but(t): probably increases rate of false positives as well …
         - how to signify the confidence in the zitation count?
 
+## 2.3.0
+- add a minimal config dialog to allow configuration at runtime
+    - GS base URL is a good candidate; it would allow the use of webproxies
+
 ## Soon(tm)
-- **note** this is a randomly ordered todo list
-- **custom fields**
-    - [have been planned for ages](https://forums.zotero.org/discussion/65301/adding-a-custom-information-field)
-    -  currently they're planned for Zotero 5.2 (heh)
+**note:** this is a randomly ordered todo list, higher up the list doesn't imply higher priority
 - automatically update version number (i.e. in install.rdf)
 - clean up variable handling
     - e.g. `this`/`zsc.` right now zsc. is just an almost global storage for eveything)
@@ -39,7 +40,7 @@
     - the whole npm thingy might be a bad idea in the first place
         - zsc is run in a browser, it should probably tested that way as well
         - but the whole XUL part is nasty AF
-    - npm/package.json based
+    - purely npm/package.json based?
     - true OS independence
         - i.e. I have to fix my tools first
         - either go full cygwin stack or full windose (but cmd is soo shit q.q)
@@ -47,5 +48,7 @@
         - alternative: do everything in node
 - rework citation field
     - can't do this before Zotero 5.2 apparently :(
-    - change to something more citation related than "extra[as mentioned here](https://github.com/beloglazov/zotero-scholar-citations/issues/37)
-    - fix citation field type; [also fixes length!](https://github.com/beloglazov/zotero-scholar-citations/issues/31)
+        - **custom fields** [have been planned for ages](https://forums.zotero.org/discussion/65301/adding-a-custom-information-field)
+        - currently they're planned for Zotero 5.2 (heh)
+    - use a name that's more citation-related than "extra" [as mentioned here](https://github.com/beloglazov/zotero-scholar-citations/issues/37)
+    - fix citation field type, which also fixes all sorts of [length issues](https://github.com/beloglazov/zotero-scholar-citations/issues/31)
