@@ -57,7 +57,7 @@ One combination of authors will certainly yield the correct search.
 You can also temporarly recreate that combination in Zotero. ZSC will then successfully query that item. Once you re-add the author however, updates will fail again. :(
 
 ## RoadMap
-The [RoadMap can be found here](https://github.com/MaxKuehn/zotero-scholar-citations/blob/master/RoadMap.md).
+The [RoadMap can be found here](https://github.com/MaxKuehn/zotero-scholar-citations/blob/develop/RoadMap.md).
 
 ## Why the Fork
 
