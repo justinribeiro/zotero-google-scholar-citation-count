@@ -16,6 +16,8 @@
 - author & date shinanigans
     - sometimes papers are not found because not all authors are listed as such on google scholar
     - same goes for the date
+    - another failure source: discrepancy between title that GS lists and Zoteros title field
+      - remove stop words from titles?
     - **solution/workaroud**
         - depends on the ability to redo requests at will
         - start with dropping the date
