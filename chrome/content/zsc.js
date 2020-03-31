@@ -200,11 +200,26 @@ zsc.retrieveCitationData = function(item, cb) {
                 }
             }
         } else if (this.readyState == 4 && this.status == 429) {
-            if (isDebug()) Zotero.debug('[scholar-citations] '
-                + 'could not retrieve the google scholar data. Server returned: ['
-                + xhr.status + ': '  + xhr.statusText + ']. '
-                + 'GS want\'s you to wait for ' + this.getResponseHeader("Retry-After")
-                + ' seconds before sending further requests.');
+            if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
+                if (isDebug()) Zotero.debug('[scholar-citations] '
+                    + 'could not retrieve the google scholar data. Server returned: ['
+                    + xhr.status + ': '  + xhr.statusText + ']. '
+                    + 'GS want\'s you to wait for ' + this.getResponseHeader("Retry-After")
+                    + ' seconds before sending further requests.');
+            } else {
+                if (isDebug()) Zotero.debug("[scholar-citations] "
+                    + "received a captcha instead of a scholar result");
+                alert(zsc._captchaString);
+                if (typeof Zotero.openInViewer !== 'undefined') {
+                    Zotero.openInViewer(url);
+                } else if (typeof ZoteroStandalone !== 'undefined') {
+                    ZoteroStandalone.openInViewer(url);
+                } else if (typeof Zotero.launchURL !== 'undefined') {
+                    Zotero.launchURL(url);
+                } else {
+                    window.gBrowser.loadOneTab(url, {inBackground: false});
+                }
+            }
 
         } else if (this.readyState == 4) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
