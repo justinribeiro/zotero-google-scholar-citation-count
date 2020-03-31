@@ -232,10 +232,10 @@ zsc.generateItemUrl = function(item) {
         }
     }
 
-    let year = item.getField('year');
-    if (year) {
-        url += '&as_ylo=' + year + '&as_yhi=' + year;
-    }
+//     let year = item.getField('year');
+//     if (year) {
+//         url += '&as_ylo=' + year + '&as_yhi=' + year;
+//     }
 
     return encodeURI(url);
 };
