@@ -240,9 +240,13 @@ zsc.generateItemUrl = function(item) {
 
     let creators = item.getCreators();
     if (creators && creators.length > 0) {
+
+        // using the first three authors is enough for accurate retrieval
+        num_creators = creators.length > 3 ? 3 : creators.length;
+
         url += '&as_sauthors=';
         url += creators[0].lastName;
-        for (let idx = 1; idx < creators.length; idx++) {
+        for (let idx = 1; idx < num_creators; idx++) {
             url += '+' + creators[idx].lastName;
         }
     }
