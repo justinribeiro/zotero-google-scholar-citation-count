@@ -251,10 +251,11 @@ zsc.generateItemUrl = function(item) {
         }
     }
 
-//     let year = item.getField('year');
-//     if (year) {
-//         url += '&as_ylo=' + year + '&as_yhi=' + year;
-//     }
+    let year = parseInt(item.getField('year'));
+    if (year) {
+        // set a small range of year instead of an exact number
+        url += '&as_ylo=' + (year - 2) + '&as_yhi=' + (year + 2);
+    }
 
     return encodeURI(url);
 };
