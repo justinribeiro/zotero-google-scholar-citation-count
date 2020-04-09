@@ -33,9 +33,11 @@ zsc.init = function() {
         this._citedPrefixString = stringBundle.getString('citedPrefixString');
     }
 
-    // Register the callback in Zotero as an item observer
-    let notifierID = Zotero.Notifier.registerObserver(
-        this.notifierCallback, ['item']);
+    // Temporarily disable Notifier to observe add event,
+    //     as the request cannot use local cookie when adding new item.
+    // // Register the callback in Zotero as an item observer
+    // let notifierID = Zotero.Notifier.registerObserver(
+    //     this.notifierCallback, ['item']);
 
     // Unregister callback when the window closes (important to avoid a memory leak)
     window.addEventListener('unload', function(e) {
@@ -182,12 +184,12 @@ zsc.retrieveCitationData = function(item, cb) {
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
-                if (isDebug()) Zotero.debug("[scholar-citations] "
-                    + "recieved non-captcha scholar results");
+                if (isDebug()) Zotero.debug('[scholar-citations] '
+                    + 'recieved non-captcha scholar results');
                 cb(item, zsc.getCiteCount(this.responseText));
             } else {
-                if (isDebug()) Zotero.debug("[scholar-citations] "
-                    + "received a captcha instead of a scholar result");
+                if (isDebug()) Zotero.debug('[scholar-citations] '
+                    + 'received a captcha instead of a scholar result');
                 alert(zsc._captchaString);
                 if (typeof Zotero.openInViewer !== 'undefined') {
                     Zotero.openInViewer(url);
@@ -229,6 +231,7 @@ zsc.retrieveCitationData = function(item, cb) {
             // request progress, I guess
         }
     };
+    xhr.withCredentials = true;
     xhr.send();
 };
 
