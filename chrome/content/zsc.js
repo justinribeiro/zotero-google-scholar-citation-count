@@ -231,7 +231,6 @@ zsc.retrieveCitationData = function(item, cb) {
             // request progress, I guess
         }
     };
-    xhr.withCredentials = true;
     xhr.send();
 };
 
