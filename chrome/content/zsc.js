@@ -183,11 +183,16 @@ zsc.retrieveCitationData = function(item, cb) {
     xhr.open('GET', url, true);
     xhr.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
+            // // debug on response text
+            // if (isDebug()) Zotero.debug(this.responseText);
+
+            // check if response includes meaningful content
+            if (this.responseText.indexOf('class="gs_r gs_or gs_scl"') != -1) {
                 if (isDebug()) Zotero.debug('[scholar-citations] '
                     + 'recieved non-captcha scholar results');
                 cb(item, zsc.getCiteCount(this.responseText));
-            } else {
+            // check if response includes captcha
+            } else if (this.responseText.indexOf('www.google.com/recaptcha/api.js') != -1){
                 if (isDebug()) Zotero.debug('[scholar-citations] '
                     + 'received a captcha instead of a scholar result');
                 alert(zsc._captchaString);
@@ -200,6 +205,11 @@ zsc.retrieveCitationData = function(item, cb) {
                 } else {
                     window.gBrowser.loadOneTab(url, {inBackground: false});
                 }
+            } else {
+                // debug response text in other cases
+                if (isDebug()) Zotero.debug('[scholar-citations] '
+                    + 'neither got meaningful text or captcha, please check the following response text');
+                if (isDebug()) Zotero.debug(this.responseText);
             }
         } else if (this.readyState == 4 && this.status == 429) {
             if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
