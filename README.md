@@ -1,3 +1,5 @@
+# This repo aims to make ZSC works better in China, and fix some minor problems by the way.
+
 # Zotero Scholar Citations (ZSC)
 This is an add-on for Zotero, a research source management tool. The add-on automatically fetches numbers of citations of your Zotero items from Google Scholar and makes it possible to sort your items by the citations. Moreover, it allows batch updating the citations, as they may change over time.
 
