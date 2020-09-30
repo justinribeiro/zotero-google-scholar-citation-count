@@ -5,7 +5,7 @@ let zsc = {
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
     _noData : 'NoCitationData',
-    _searchblackList: new RegExp('[-+~*":]', 'g'),
+    // _searchblackList: new RegExp('[-+~*":]', 'g'),
     _baseUrl : 'https://scholar.google.com/'
 };
 
@@ -210,6 +210,7 @@ zsc.retrieveCitationData = function(item, cb) {
                 if (isDebug()) Zotero.debug('[scholar-citations] '
                     + 'neither got meaningful text or captcha, please check the following response text');
                 if (isDebug()) Zotero.debug(this.responseText);
+                alert('neither got meaningful text or captcha, please check it in log')
             }
         } else if (this.readyState == 4 && this.status == 429) {
             if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
@@ -246,8 +247,9 @@ zsc.retrieveCitationData = function(item, cb) {
 
 zsc.generateItemUrl = function(item) {
     let url = this._baseUrl
-        + 'scholar?hl=en&as_q='
-        + zsc.cleanTitle(item.getField('title')).split(/\s/).join('+')
+        + 'scholar?hl=en&q='
+        // + zsc.cleanTitle(item.getField('title'))
+        + item.getField('title')
         + '&as_epq=&as_occt=title&num=1';
 
     let creators = item.getCreators();
@@ -272,9 +274,11 @@ zsc.generateItemUrl = function(item) {
     return encodeURI(url);
 };
 
-zsc.cleanTitle = function(title) {
-    return title.replace(zsc._searchblackList, ' ');
-};
+// zsc.cleanTitle = function(title) {
+//     let clean_title = title.replace(zsc._searchblackList, ' ');
+//     clean_title = clean_title.split(/\s/).join('+');
+//     return clean_title;
+// };
 
 zsc.padLeftWithZeroes = function(numStr) {
     let output = '';
