@@ -1,4 +1,12 @@
-# This repo aims to make ZSC works better in China, and fix some minor problems by the way.
+# Note
+**This forked repo aims to make ZSC works better in China, and fix some minor problems by the way.**
+
+New features: 
+- Improve the process of dealing with reCAPTCHA, especially in China;
+- Fix url error when encounter special characters in the paper title;
+- When updating many items, a random time delay is added, which may avoid Google Scholar traffic detection and reduce the frequency of reCAPTCHA;
+
+---
 
 # Zotero Scholar Citations (ZSC)
 This is an add-on for Zotero, a research source management tool. The add-on automatically fetches numbers of citations of your Zotero items from Google Scholar and makes it possible to sort your items by the citations. Moreover, it allows batch updating the citations, as they may change over time.
