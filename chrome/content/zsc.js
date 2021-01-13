@@ -4,9 +4,12 @@ let zsc = {
     _citeCountStrLength: 7,
     _extraPrefix: 'ZSCC',
     _extraEntrySep: ' \n',
-    _noData : 'NoCitationData',
+    _noData: 'NoCitationData',
     // _searchblackList: new RegExp('[-+~*":]', 'g'),
-    _baseUrl : 'https://scholar.google.com/'
+    _baseUrl: 'https://scholar.google.com/',
+
+    _min_wait_time: 3000,
+    _max_wait_time: 5000,
 };
 
 zsc._extraRegex = new RegExp(
@@ -29,15 +32,15 @@ let isDebug = function() {
 zsc.init = function() {
     let stringBundle = document.getElementById('zoteroscholarcitations-bundle');
     if (stringBundle != null) {
-        this._captchaString = stringBundle.getString('captchaString');
-        this._citedPrefixString = stringBundle.getString('citedPrefixString');
+        zsc._captchaString = stringBundle.getString('captchaString');
+        zsc._citedPrefixString = stringBundle.getString('citedPrefixString');
     }
 
     // Temporarily disable Notifier to observe add event,
     //     as the request cannot use local cookie when adding new item.
     // // Register the callback in Zotero as an item observer
     // let notifierID = Zotero.Notifier.registerObserver(
-    //     this.notifierCallback, ['item']);
+    //     zsc.notifierCallback, ['item']);
 
     // Unregister callback when the window closes (important to avoid a memory leak)
     window.addEventListener('unload', function(e) {
@@ -67,13 +70,13 @@ zsc.updateCollectionMenuEntry = function() {
 
     let group = ZoteroPane.getSelectedGroup();
     if (group) {
-        this.updateGroup(ZoteroPane.getSelectedGroup());
+        zsc.updateGroup(ZoteroPane.getSelectedGroup());
         return;
     };
 
     let collection = ZoteroPane.getSelectedCollection();
     if (collection) {
-        this.updateCollection(collection);
+        zsc.updateCollection(collection);
         return;
     }
 
@@ -86,24 +89,30 @@ zsc.updateItemMenuEntries = function() {
         alert('You lack the permission to make edit to this library.');
         return;
     }
-    this.processItems(ZoteroPane.getSelectedItems());
+    zsc.processItems(ZoteroPane.getSelectedItems());
 };
 
 zsc.updateGroup = function(group) {
     alert('Updating a Group is not yet implemented.')
     return;
-    //this.processUpdateQueue(items);
 };
 
 zsc.updateCollection = function(collection) {
-    this.processItems(collection.getChildItems());
+    zsc.processItems(collection.getChildItems());
     let childColls = collection.getChildCollections();
     for (idx = 0; idx < childColls.length; ++idx) {
-        this.updateCollection(childColls[idx]);
+        zsc.updateCollection(childColls[idx]);
     }
 };
 
 zsc.processItems = function(items) {
+    // get a random integer
+    function randomInteger(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // try to add delay execution to get rid of reCAPTCHA
+    let time = 0;
     while (item = items.shift()) {
         if (!zsc.hasRequiredFields(item)) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
@@ -111,11 +120,16 @@ zsc.processItems = function(items) {
                 + ' it has either an empty title or is missing creator information');
             continue;
         }
-        this.retrieveCitationData(item, function(item, citeCount) {
-            if (isDebug()) Zotero.debug('[scholar-citations] '
-                + 'Updating item "' + item.getField('title') + '"');
+
+        if (isDebug()) Zotero.debug('[scholar-citations] '
+            + 'this retrieving will run in '+ time + 'milliseconds later.');
+        // using setTimeout(non-blocking) to delay execution
+        setTimeout(zsc.retrieveCitationData, time, item, function(item, citeCount) {
+            if (isDebug()) Zotero.debug('[scholar-citations] ' + 'Updating item "' + item.getField('title') + '"');
             zsc.updateItem(item, citeCount);
         });
+        // cumulate time for next retrieve
+        time += randomInteger(zsc._min_wait_time, zsc._max_wait_time);
     }
 };
 
@@ -176,7 +190,7 @@ zsc.updateItem = function(item, citeCount) {
 // this prob. involves some nasty callback hell shit
 // TODO: retries with random author permutations decreasing in author number :^)
 zsc.retrieveCitationData = function(item, cb) {
-    let url = this.generateItemUrl(item);
+    let url = zsc.generateItemUrl(item);
     if (isDebug()) Zotero.debug("[scholar-citations] GET " + url);
     let citeCount;
     let xhr = new XMLHttpRequest();
@@ -246,7 +260,7 @@ zsc.retrieveCitationData = function(item, cb) {
 };
 
 zsc.generateItemUrl = function(item) {
-    let url = this._baseUrl
+    let url = zsc._baseUrl
         + 'scholar?hl=en&q='
         // + zsc.cleanTitle(item.getField('title'))
         + item.getField('title')
@@ -282,7 +296,7 @@ zsc.generateItemUrl = function(item) {
 
 zsc.padLeftWithZeroes = function(numStr) {
     let output = '';
-    let cnt = this._citeCountStrLength - numStr.length;
+    let cnt = zsc._citeCountStrLength - numStr.length;
     for (let i = 0; i < cnt; i++) { output += '0'; }
     output += numStr;
     return output;
@@ -290,9 +304,9 @@ zsc.padLeftWithZeroes = function(numStr) {
 
 zsc.buildCiteCountString = function(citeCount) {
     if (citeCount < 0)
-        return this._extraPrefix + ': ' + this._noData;
+        return zsc._extraPrefix + ': ' + zsc._noData;
     else
-        return this._extraPrefix + ': ' + this.padLeftWithZeroes(citeCount.toString());
+        return zsc._extraPrefix + ': ' + zsc.padLeftWithZeroes(citeCount.toString());
 };
 
 zsc.buildStalenessString = function(stalenessCount) {
@@ -300,7 +314,7 @@ zsc.buildStalenessString = function(stalenessCount) {
 };
 
 zsc.getCiteCount = function(responseText) {
-    let citePrefix = '>' + this._citedPrefixString;
+    let citePrefix = '>' + zsc._citedPrefixString;
     let citePrefixLen = citePrefix.length;
     let citeCountStart = responseText.indexOf(citePrefix);
 
