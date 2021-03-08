@@ -1,7 +1,7 @@
 # Note
 **This repo was forked from https://github.com/beloglazov/zotero-scholar-citations and https://github.com/MaxKuehn/zotero-scholar-citations.**
 
-**This repo aims to make ZSC works better in China, and fix some minor problems by the way.**
+**This repo aims to make ZSC works better with Google Scholar, especially in China, and fix some minor problems by the way.**
 
 New features: 
 - Improve the process of dealing with reCAPTCHA, especially in China;
