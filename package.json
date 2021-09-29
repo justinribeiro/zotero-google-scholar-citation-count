@@ -1,37 +1,54 @@
 {
-    "name": "zotero-scholar-citatations",
-    "version": "2.0.5-SNAPSHOT",
-    "bugs": {
-        "url": "https://github.com/MaxKuehn/zotero-scholar-citations/issues"
+  "name": "zotero-scholar-citations",
+  "version": "3.0.0",
+  "bugs": {
+    "url": "https://github.com/justinribeiro/zotero-scholar-citations/issues"
+  },
+  "license": "MPLv2",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:justinribeiro/zotero-scholar-citations.git"
+  },
+  "scripts": {
+    "package": "run-script-os",
+    "package:win32": "MD build & zip -r build/zsc-%npm_package_version%-fx.xpi chrome/* chrome.manifest install.rdf",
+    "package:linux": "bash -c build.sh",
+    "clean": "run-script-os",
+    "clean:win32": "RD /S /Q coverage .nyc_output & RD /S /Q build",
+    "clean:linux": "rm -rf coverage .nyc_output build",
+    "test": "nyc --reporter=html --reporter=text-summary mocha --ui tdd"
+  },
+  "devDependencies": {
+    "assert": ">=1.4.1",
+    "eslint": "^7.32.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^8.3.0",
+    "nyc": "^14.1.1",
+    "prettier": "2.4.1",
+    "run-script-os": ">=1.0.5",
+    "sinon": ">=7.3.1",
+    "sync-request": ">=6.1.0"
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "google"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2017
     },
-    "license": "",
-    "author": {
-        "name": "Anton Beloglazov",
-        "url": "https://beloglazov.info/"
+    "env": {
+      "browser": true,
+      "node": true
     },
-    "contributors": {
-        "name": "Max Kuehn"
-    },
-    "repositroy": {
-        "type": "git",
-        "url": "https://github.com/MaxKuehn/zotero-scholar-citations.git"
-    },
-    "scripts": {
-        "package": "run-script-os",
-        "package:win32": "MD build & zip -r build/zsc-%npm_package_version%-fx.xpi chrome/* chrome.manifest install.rdf",
-        "package:linux": "build.sh",
-        "clean": "run-script-os",
-        "clean:win32": "RD /S /Q coverage .nyc_output & RD /S /Q build",
-        "clean:linux": "rm -rf coverage .nyc_output build",
-        "test": "nyc --reporter=html --reporter=text-summary mocha --ui tdd"
-    },
-    "dependencies": {},
-    "devDependencies": {
-        "assert": ">=1.4.1",
-        "nyc": "^14.1.1",
-        "run-script-os": ">=1.0.5",
-        "sinon": ">=7.3.1",
-        "sync-request": ">=6.1.0"
-    },
-    "private": true
+    "globals": {
+      "Zotero": false,
+      "ZoteroPane": false,
+      "ZoteroStandalone": false
+    }
+  },
+  "private": true
 }

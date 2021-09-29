@@ -10,13 +10,13 @@
         em:maxVersion="20.*"/>
     <RDF:Description
         RDF:about="urn:mozilla:install-manifest"
-        em:id="zoteroscholarcitations@beloglazov.info"
-        em:name="Zotero Scholar Citations"
-        em:version="2.0.5-SNAPSHOT"
+        em:id="justin@justinribeiro.com"
+        em:name="Google Scholar Citation Count"
+        em:version="3.0.0"
         em:type="2"
-        em:creator="Anton Beloglazov"
-        em:description="Zotero plugin for auto-fetching numbers of citations from Google Scholar"
-        em:homepageURL="http://beloglazov.info">
+        em:creator="Justin Ribeiro"
+        em:description="Zotero plugin for fetching numbers of citations from Google Scholar."
+        em:homepageURL="https://github.com/justinribeiro/zotero-scholar-citations">
         <em:type>2</em:type>
         <em:targetApplication RDF:resource="rdf:#$x61SL3"/>
         <em:targetApplication>

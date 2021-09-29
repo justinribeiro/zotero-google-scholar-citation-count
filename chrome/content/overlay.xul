@@ -19,6 +19,8 @@
         <menuitem
             id="zotero-collectionmenu-scholarcitations"
             label="&zotero.scholarcitations.updateCol.label;"
+            class="menuitem-iconic"
+            image="chrome://zotero/skin/prefs-sync.png"
             oncommand="Zotero.ScholarCitations.updateCollectionMenuEntry()"/>
     </popup>
 
@@ -27,6 +29,8 @@
         <menuitem
             id="zotero-itemmenu-scholarcitations"
             label="&zotero.scholarcitations.update.label;"
+            class="menuitem-iconic"
+            image="chrome://zotero/skin/prefs-sync.png"
             oncommand="Zotero.ScholarCitations.updateItemMenuEntries()"/>
     </popup>
 </overlay>

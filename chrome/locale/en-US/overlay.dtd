@@ -1,3 +1,3 @@
-<!ENTITY zotero.scholarcitations.update.label "Update citation(s)">
-<!ENTITY zotero.scholarcitations.updateCol.label "Update citations">
-<!ENTITY zotero.scholarcitations.updateAll.label "Update all citations">
+<!ENTITY zotero.scholarcitations.update.label "Update Google Scholar citation count...">
+<!ENTITY zotero.scholarcitations.updateCol.label "Update Google Scholar citation counts...">
+<!ENTITY zotero.scholarcitations.updateAll.label "Update All Google Scholar citation counts...">
