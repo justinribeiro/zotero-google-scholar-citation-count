@@ -1,4 +1,3 @@
-// eslint-disable-next-line camelcase
 const $__gsccDebugger = {
   /**
    * Print an info message to the console
@@ -41,7 +40,6 @@ const $__gsccDebugger = {
   },
 };
 
-// eslint-disable-next-line camelcase
 const $__gsccUtil = {
   /**
    * Get a random number
@@ -51,6 +49,52 @@ const $__gsccUtil = {
    */
   randomInteger: (min, max) => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+  /**
+   * Checks to validate whether the source code has a recaptcha within it
+   * @param {string} source source code to parse and search for recaptcha
+   * include
+   * @return {boolean}
+   */
+  hasRecaptcha: (source) => {
+    // if the onload is there, we know it's going to inject the iframe as
+    // opposed to just a general include
+    return source.includes('www.google.com/recaptcha/api.js?onload');
+  },
+  /**
+   * Checks to validate if we have a search result in the data
+   * @param {string} source source code to parse and search for data
+   * @return {boolean}
+   */
+  hasCitationResults: (source) => {
+    return source.includes('class="gs_r gs_or gs_scl"');
+  },
+  /**
+   * Add zero's to a given string
+   * @param {string} string the string to pad with zeros
+   * @param {number} length the length of the string
+   * @returns
+   */
+  padCountWithZeros: (string, length) => {
+    return string.padStart(length, '0');
+  },
+  /**
+   * Open a user interactive window to complete the recaptcha check
+   * @param {string} targetUrl The url which caused the recaptcha
+   * @return {void}
+   */
+  openRecaptchaWindow: (targetUrl) => {
+    alert(gsCitationCount._captchaString);
+    if (
+      typeof Zotero.openInViewer !== 'undefined' ||
+      typeof ZoteroStandalone !== 'undefined'
+    ) {
+      Zotero.openInViewer(targetUrl);
+    } else if (typeof Zotero.launchURL !== 'undefined') {
+      Zotero.launchURL(targetUrl);
+    } else {
+      window.gBrowser.loadOneTab(targetUrl, { inBackground: false });
+    }
   },
 };
 
@@ -62,36 +106,61 @@ const $__gsccUtil = {
  */
 
 const gsCitationCount = {
+  /**
+   * The string to display to user when Google Scholar requires robot check;
+   * protected because can be overridden by locale
+   * @protected
+   */
   _captchaString: '',
+  /**
+   * The string to search for on Google Scholar to pull the citation count;
+   * protected because can be overridden by locale
+   * @protected
+   */
   _citedPrefixString: 'Cited by ',
-  _citeCountStrLength: 7,
-  _extraPrefix: 'GSCC',
-  _extraEntrySep: ' \n',
-  _noData: 'NoCitationData',
-  _baseUrl: 'https://scholar.google.com/',
+  /**
+   * The overall length of the citation count
+   * @private
+   */
+  __citeCountStrLength: 7,
+  /**
+   * The string prefix for the citation count
+   * @private
+   */
+  __extraEntryPrefix: 'GSCC',
+  /**
+   * The string append for the citation count
+   * @private
+   */
+  __extraEntrySeparator: ' \n',
+  /**
+   * The string for when citation count is empty
+   * @private
+   */
+  __noData: 'NoCitationData',
+  /**
+   * API endpoint for Google Scholar
+   * @private
+   */
+  __apiEndpoint: 'https://scholar.google.com/',
 
-  _min_wait_time: 2000,
-  _max_wait_time: 7000,
-
-  _extraRegex: new RegExp(
-      '^(?:(?:' +
-      this._extraPrefix +
-      ': )?)' +
-      '((?:(?:\\d{' +
-      this._citeCountStrLength +
-      '}|' +
-      this._noData +
-      ')|(?:\\d{5}|No Citation Data))?)' +
-      '\\[?s?(\\d|)\\]?' +
-      '([^]*)$',
-  ),
+  /**
+   * The min wait time for sending an API request, in milliseconds
+   * @private
+   */
+  __minWaitMs: 2000,
+  /**
+   * The max wait time for sending an API request, in milliseconds
+   * @private
+   */
+  __maxWaitMs: 7000,
   /**
    * Initialize our world.
    * @return {void}
    */
   init: () => {
     const stringBundle = document.getElementById(
-        'zoteroscholarcitations-bundle',
+      'zoteroscholarcitations-bundle'
     );
     if (stringBundle != null) {
       gsCitationCount._captchaString = stringBundle.getString('captchaString');
@@ -136,7 +205,7 @@ const gsCitationCount = {
     }
     gsCitationCount.processItems(ZoteroPane.getSelectedItems());
   },
-  updateGroup: (group) => {
+  updateGroup: () => {
     alert('Updating a Group is not yet implemented.');
     return;
   },
@@ -159,28 +228,27 @@ const gsCitationCount = {
     while (typeof (item = items.shift()) !== 'undefined') {
       if (!gsCitationCount.hasRequiredFields(item)) {
         $__gsccDebugger.warn(
-            `skipping item '${item.getField(
-                'title',
-            )}': empty title or missing creator information'`,
+          `skipping item '${item.getField(
+            'title'
+          )}': empty title or missing creator information'`
         );
         continue;
       }
       $__gsccDebugger.info(`queued for ${time} ms later.`);
 
-      // using setTimeout(non-blocking) to delay execution
       setTimeout(
-          gsCitationCount.retrieveCitationData,
-          time,
-          item,
-          (item, citeCount) => {
-            $__gsccDebugger.info(`updating item '${item.getField('title')}'`);
-            gsCitationCount.updateItem(item, citeCount);
-          },
+        gsCitationCount.retrieveCitationData,
+        time,
+        item,
+        (item, citeCount) => {
+          $__gsccDebugger.info(`updating item '${item.getField('title')}'`);
+          gsCitationCount.updateItem(item, citeCount);
+        }
       );
       // cumulate time for next retrieve
       time += $__gsccUtil.randomInteger(
-          gsCitationCount._min_wait_time,
-          gsCitationCount._max_wait_time,
+        gsCitationCount.__minWaitMs,
+        gsCitationCount.__maxWaitMs
       );
     }
   },
@@ -190,185 +258,151 @@ const gsCitationCount = {
    * @param {number} citeCount
    */
   updateItem: (item, citeCount) => {
-    const curExtra = item.getField('extra');
-    const matches = curExtra.match(gsCitationCount._extraRegex);
-    let newExtra = '';
+    const fieldExtra = item.getField('extra');
+    const buildNewCiteCount = gsCitationCount.buildCiteCountString(citeCount);
+    let revisedExtraField;
 
-    if (citeCount >= 0) {
-      newExtra += gsCitationCount.buildCiteCountString(citeCount);
-      $__gsccDebugger.info(`updating extra field with new cite count`);
+    if (fieldExtra.startsWith(gsCitationCount.__extraEntryPrefix)) {
+      $__gsccDebugger.info(`existing cite count in extra field, updating`);
+      revisedExtraField = fieldExtra.replace(
+        RegExp(
+          `${gsCitationCount.__extraEntryPrefix}*${gsCitationCount.__extraEntrySeparator}`,
+          'g'
+        ),
+        buildNewCiteCount
+      );
     } else {
-      if (matches[1] === '') {
-        $__gsccDebugger.info(
-            `updating extra field that contains no zsc content`,
-        );
-        newExtra += gsCitationCount.buildCiteCountString(citeCount);
-      } else if (
-        matches[1] === gsCitationCount._noData ||
-        matches[1] === 'No Citation Data'
-      ) {
-        $__gsccDebugger.info(`updating extra field that contains "no data"`);
-        newExtra += gsCitationCount.buildCiteCountString(citeCount);
-      } else {
-        const oldCiteCount = parseInt(matches[1]);
-        newExtra += gsCitationCount.buildCiteCountString(oldCiteCount);
-        $__gsccDebugger.info(`updating extra field that contains cite count`);
-      }
-
-      if (!matches[2]) {
-        $__gsccDebugger.info(`marking extra field as stale`);
-        newExtra += gsCitationCount.buildStalenessString(0);
-      } else {
-        $__gsccDebugger.info(`increasing staleness counter in extra field`);
-        newExtra += gsCitationCount.buildStalenessString(
-            (parseInt(matches[2]) + 1) % 10,
-        );
-      }
+      $__gsccDebugger.info(`no existing cite count in extra field, adding`);
+      revisedExtraField = buildNewCiteCount.concat('', fieldExtra);
     }
-
-    if (/^\s\n/.test(matches[3]) || matches[3] === '') {
-      // do nothing, since the separator is already correct or not needed at all
-    } else if (/^\n/.test(matches[3])) {
-      newExtra += ' ';
-    } else {
-      newExtra += gsCitationCount._extraEntrySep;
-    }
-    newExtra += matches[3];
-
-    item.setField('extra', newExtra);
+    item.setField('extra', revisedExtraField);
 
     try {
       item.saveTx();
     } catch (e) {
-      $__gsccDebugger.error(`could not update extra content: ${e}`);
+      $__gsccDebugger.error(
+        `could not update extra field with citation count: ${e}`
+      );
     }
   },
-  retrieveCitationData: (item, cb) => {
-    const url = gsCitationCount.generateItemUrl(item);
+  /**
+   * Retrieve the Google Scholar Citation Count for a given Zotero item record
+   * @param {ZoteroGenericItem} item Used to generate the fetch() string
+   * @param {function} callback callback on complete
+   */
+  retrieveCitationData: (item, callback) => {
+    const targetUrl = gsCitationCount.generateItemUrl(item);
 
-    $__gsccDebugger.info(`GET ${url}`);
+    $__gsccDebugger.info(`GET ${targetUrl}`);
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        if (this.responseText.indexOf('class="gs_r gs_or gs_scl"') != -1) {
-          $__gsccDebugger.info(`received non-captcha scholar results`);
-          cb(item, gsCitationCount.getCiteCount(this.responseText));
-          // check if response includes captcha
-        } else if (
-          this.responseText.indexOf('www.google.com/recaptcha/api.js') != -1
-        ) {
-          $__gsccDebugger.warn(
-              `received a captcha instead of a scholar result`,
-          );
-          alert(gsCitationCount._captchaString);
-          if (typeof Zotero.openInViewer !== 'undefined') {
-            Zotero.openInViewer(url);
-          } else if (typeof ZoteroStandalone !== 'undefined') {
-            ZoteroStandalone.openInViewer(url);
-          } else if (typeof Zotero.launchURL !== 'undefined') {
-            Zotero.launchURL(url);
-          } else {
-            window.gBrowser.loadOneTab(url, {inBackground: false});
-          }
-        } else {
-          $__gsccDebugger.warn(
-              // eslint-disable-next-line max-len
-              `neither got meaningful text or captcha, please check the following response text`,
-          );
-          $__gsccDebugger.warn(this.responseText);
-          alert(
-              'neither got meaningful text or captcha, please check it in log',
-          );
+    // Sadly, fetch() won't work here because Google is wise to the no-js, which
+    // in a twisted turn XHR passes
+    const request = new XMLHttpRequest();
+    request.open('GET', targetUrl, true);
+    request.onreadystatechange = () => {
+      if (request.readyState === 4) {
+        const retryCheck = request.getResponseHeader('Retry-After');
+        const rawData = request.responseText;
+
+        switch (request.status) {
+          case 200:
+            if (!$__gsccUtil.hasRecaptcha(rawData)) {
+              if ($__gsccUtil.hasCitationResults(rawData)) {
+                $__gsccDebugger.info(
+                  `Google Scholar returned search result, parsing cite count`
+                );
+                callback(item, gsCitationCount.getCiteCount(rawData));
+              } else {
+                $__gsccDebugger.warn(
+                  `Google Scholar found no search result for requested item: ${targetUrl}`
+                );
+              }
+            } else {
+              $__gsccDebugger.warn(
+                'Google Scholar asking for recaptcha, opening window.'
+              );
+              $__gsccUtil.openRecaptchaWindow(targetUrl);
+            }
+            break;
+          case 404:
+            $__gsccDebugger.error(
+              `Google Scholar could not find the requested page.`
+            );
+            break;
+          case 429:
+            if (retryCheck) {
+              $__gsccDebugger.warn(
+                `Google Scholar asks for retry after ${retryCheck} seconds, re-queuing request.`
+              );
+              // TODO requeue
+            }
+            break;
+          default:
+            $__gsccDebugger.error(
+              `Google Scholar fetch failed for item: ${targetUrl}`
+            );
+            break;
         }
-      } else if (this.readyState == 4 && this.status == 429) {
-        if (
-          this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1
-        ) {
-          $__gsccDebugger.error(
-              // eslint-disable-next-line max-len
-              `could not retrieve the google scholar data: ${xhr.status}: ${
-                xhr.statusText
-              }, retry after ${this.getResponseHeader('Retry-After')} seconds.`,
-          );
-        } else {
-          $__gsccDebugger.warn(
-              `received a captcha instead of a scholar result`,
-          );
-
-          alert(gsCitationCount._captchaString);
-          if (typeof Zotero.openInViewer !== 'undefined') {
-            Zotero.openInViewer(url);
-          } else if (typeof ZoteroStandalone !== 'undefined') {
-            ZoteroStandalone.openInViewer(url);
-          } else if (typeof Zotero.launchURL !== 'undefined') {
-            Zotero.launchURL(url);
-          } else {
-            window.gBrowser.loadOneTab(url, {inBackground: false});
-          }
-        }
-      } else if (this.readyState == 4) {
-        $__gsccDebugger.error(
-            // eslint-disable-next-line max-len
-            `could not retrieve the google scholar data: ${xhr.status}: ${xhr.statusText}`,
-        );
-      } else {
-        // request progress, I guess
       }
     };
-    xhr.send();
+    request.send();
   },
+  /**
+   * Generate a Google Scholar URL to use to fetch data
+   * @param {ZoteroGenericItem} item
+   * @returns string
+   */
   generateItemUrl: (item) => {
-    let url =
-      gsCitationCount._baseUrl +
-      'scholar?hl=en&q=' +
-      // + zsc.cleanTitle(item.getField('title'))
-      item.getField('title') +
-      '&as_epq=&as_occt=title&num=1';
+    let paramDateRange = '';
+    let paramAuthors = '';
 
-    const creators = item.getCreators();
-    if (creators && creators.length > 0) {
-      // using the first three authors is enough for accurate retrieval
-      const numCreators = creators.length > 3 ? 3 : creators.length;
+    /**
+     * @type array
+     */
+    const creators = item.getCreators() || [];
 
-      url += '&as_sauthors=';
-      url += creators[0].lastName;
-      for (let idx = 1; idx < numCreators; idx++) {
-        url += '+' + creators[idx].lastName;
-      }
+    if (creators.length > 0) {
+      paramAuthors = `&as_sauthors=${creators
+        .map((author) => author.lastName)
+        .slice(0, 3)
+        .join('+')}`;
     }
 
     const year = parseInt(item.getField('year'));
     if (year) {
-      // set a small range of year instead of an exact number
-      url += '&as_ylo=' + (year - 2) + '&as_yhi=' + (year + 2);
+      paramDateRange = `&as_ylo=${year - 2}&as_yhi=${year + 2}`;
     }
 
-    return encodeURI(url);
+    const targetUrl = `${
+      gsCitationCount.__apiEndpoint
+    }scholar?hl=en&q=${item.getField(
+      'title'
+    )}&as_epq=&as_occt=title&num=1${paramAuthors}${paramDateRange}`;
+
+    return encodeURI(targetUrl);
   },
-  padLeftWithZeroes: (numStr) => {
-    let output = '';
-    const cnt = gsCitationCount._citeCountStrLength - numStr.length;
-    for (let i = 0; i < cnt; i++) {
-      output += '0';
-    }
-    output += numStr;
-    return output;
-  },
+  /**
+   * Create the citation string for use on the item record
+   * @param {number} citeCount
+   * @returns string
+   */
   buildCiteCountString: (citeCount) => {
+    let data;
     if (citeCount < 0) {
-      return gsCitationCount._extraPrefix + ': ' + gsCitationCount._noData;
+      data = gsCitationCount.__noData;
     } else {
-      return (
-        gsCitationCount._extraPrefix +
-        ': ' +
-        gsCitationCount.padLeftWithZeroes(citeCount.toString())
+      data = $__gsccUtil.padCountWithZeros(
+        citeCount.toString(),
+        gsCitationCount.__citeCountStrLength
       );
     }
-  },
-  buildStalenessString: (stalenessCount) => {
-    return '[s' + stalenessCount + ']';
+    // technically, you don't have to do it this way, but this is easier to
+    // understand from an implementation standpoint since we need the new line
+    // separator in the regex for finding things
+    return (
+      `${gsCitationCount.__extraEntryPrefix}: ${data}` +
+      gsCitationCount.__extraEntrySeparator
+    );
   },
   getCiteCount: (responseText) => {
     const citePrefix = '>' + gsCitationCount._citedPrefixString;
