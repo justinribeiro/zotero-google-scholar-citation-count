@@ -292,17 +292,20 @@ const gsCitationCount = {
     let revisedExtraField;
 
     if (fieldExtra.startsWith(gsCitationCount.__extraEntryPrefix)) {
-      $__gsccDebugger.info(`existing cite count in extra field, updating`);
       revisedExtraField = fieldExtra.replace(
-        RegExp(
-          `${gsCitationCount.__extraEntryPrefix}.*${gsCitationCount.__extraEntrySeparator}`,
-          'g'
-        ),
+        new RegExp(`${gsCitationCount.__extraEntryPrefix}.{9}`, 'g'),
         buildNewCiteCount
+      );
+      $__gsccDebugger.info(
+        `existing cite count in extra field, updating to ${buildNewCiteCount} ${revisedExtraField}`
       );
     } else {
       $__gsccDebugger.info(`no existing cite count in extra field, adding`);
-      revisedExtraField = buildNewCiteCount.concat('', fieldExtra);
+      revisedExtraField =
+        `${buildNewCiteCount}${gsCitationCount.__extraEntrySeparator}`.concat(
+          '',
+          fieldExtra
+        );
     }
     item.setField('extra', revisedExtraField);
 
@@ -449,13 +452,7 @@ const gsCitationCount = {
         gsCitationCount.__citeCountStrLength
       );
     }
-    // technically, you don't have to do it this way, but this is easier to
-    // understand from an implementation standpoint since we need the new line
-    // separator in the regex for finding things
-    return (
-      `${gsCitationCount.__extraEntryPrefix}: ${data}` +
-      gsCitationCount.__extraEntrySeparator
-    );
+    return `${gsCitationCount.__extraEntryPrefix}: ${data}`;
   },
   getCiteCount: (responseText) => {
     const citePrefix = '>' + gsCitationCount._citedPrefixString;

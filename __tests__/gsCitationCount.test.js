@@ -31,13 +31,13 @@ describe('Verify gsCitationCount sanity', () => {
   it('buildcitecountstring() string + count', () => {
     const count = gscc.gsCitationCount.getCiteCount(hasCitation.data);
     const test = gscc.gsCitationCount.buildCiteCountString(count);
-    expect(test).toEqual('GSCC: 0001028 \n');
+    expect(test).toEqual('GSCC: 0001028');
   });
 
   it('buildcitecountstring() string + no data', () => {
     const count = gscc.gsCitationCount.getCiteCount(noCitation.data);
     const test = gscc.gsCitationCount.buildCiteCountString(count);
-    expect(test).toEqual('GSCC: NoCitationData \n');
+    expect(test).toEqual('GSCC: NoCitationData');
   });
 
   it('generateItemUrl() should output string', () => {
