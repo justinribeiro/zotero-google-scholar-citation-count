@@ -1,3 +1,40 @@
+/**
+ * A short hand typedef for general use, not exhaustive of the Zotero Schema
+ * @typedef {Object} ZoteroGenericItem
+ * @property {function} getCreators returns an array of creators/authors
+ * @property {function} getField returns a specific schema field
+ * @property {String} DOI
+ * @property {String} ISSN
+ * @property {String} abstractNote
+ * @property {String} accessDate
+ * @property {Array} collections
+ * @property {ZoteroCreator[]} creators
+ * @property {String} date
+ * @property {String} dateAdded
+ * @property {String} dateModified
+ * @property {String} extra
+ * @property {String} issue
+ * @property {String} itemType
+ * @property {String} journalAbbreviation
+ * @property {String} key
+ * @property {String} pages
+ * @property {String} publicationTitle
+ * @property {Object} relations
+ * @property {Array} tags
+ * @property {String} title
+ * @property {String} url
+ * @property {String} version
+ * @property {String} volume
+ */
+
+/**
+ * A short hand typedef for general use, not exhaustive of the Zotero Schema
+ * @typedef {Object} ZoteroCreator
+ * @property {String} firstName
+ * @property {String} lastName
+ * @property {String} creatorType
+ */
+
 const $__gsccDebugger = {
   /**
    * Print an info message to the console
@@ -59,7 +96,7 @@ const $__gsccUtil = {
   hasRecaptcha: (source) => {
     // if the onload is there, we know it's going to inject the iframe as
     // opposed to just a general include
-    return source.includes('www.google.com/recaptcha/api.js?onload');
+    return source.includes('google.com/recaptcha/api.js?onload');
   },
   /**
    * Checks to validate if we have a search result in the data
@@ -97,13 +134,6 @@ const $__gsccUtil = {
     }
   },
 };
-
-/**
- * A short hand typedef for general use, not exhaustive of the Zotero Schema
- * @typedef {Object} ZoteroGenericItem
- * @property {function} getCreators returns an array of creators/authors
- * @property {function} getField returns a specific schema field
- */
 
 const gsCitationCount = {
   /**
@@ -410,8 +440,11 @@ const gsCitationCount = {
     const citeCountStart = responseText.indexOf(citePrefix);
 
     if (citeCountStart === -1) {
-      if (responseText.indexOf('class="gs_rt"') === -1) return -1;
-      else return 0;
+      if (responseText.indexOf('class="gs_rt"') === -1) {
+        return -1;
+      } else {
+        return 0;
+      }
     } else {
       const citeCountEnd = responseText.indexOf('<', citeCountStart);
       const citeStr = responseText.substring(citeCountStart, citeCountEnd);
@@ -432,3 +465,8 @@ window.Zotero.ScholarCitations.updateCollectionMenuEntry = () => {
 window.Zotero.ScholarCitations.updateItemMenuEntries = () => {
   gsCitationCount.updateItemMenuEntries();
 };
+
+// For testing only
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { gsCitationCount, $__gsccDebugger, $__gsccUtil };
+}

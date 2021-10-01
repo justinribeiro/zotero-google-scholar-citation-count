@@ -12,12 +12,16 @@
   "scripts": {
     "package": "npm run clean && bash -c ./build.sh",
     "clean": "rm -rf coverage .nyc_output build",
-    "test": "nyc --reporter=html --reporter=text-summary mocha --ui tdd"
+    "test": "jest"
   },
   "devDependencies": {
     "assert": ">=1.4.1",
+    "core-js": "^3.18.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "^24.5.0",
+    "jest": "^27.2.4",
+    "mocha": "^9.1.2",
     "nyc": "^14.1.1",
     "prettier": "2.4.1",
     "run-script-os": ">=1.0.5",
@@ -32,12 +36,17 @@
       "eslint:recommended",
       "prettier"
     ],
+    "plugins": [
+      "jest"
+    ],
     "parserOptions": {
-      "ecmaVersion": 2017
+      "ecmaVersion": 2020,
+      "sourceType": "module"
     },
     "env": {
       "browser": true,
-      "node": true
+      "node": true,
+      "jest/globals": true
     },
     "globals": {
       "Zotero": false,
