@@ -205,7 +205,7 @@ const gsCitationCount = {
    * @return {boolean}
    */
   hasRequiredFields: (item) => {
-    return item.getField('title') && item.getCreators().length > 0;
+    return item.getField('title') !== '' && item.getCreators().length > 0;
   },
   updateCollectionMenuEntry: () => {
     if (!ZoteroPane.canEditLibrary()) {
@@ -271,7 +271,6 @@ const gsCitationCount = {
         time,
         item,
         (item, citeCount) => {
-          $__gsccDebugger.info(`updating item '${item.getField('title')}'`);
           gsCitationCount.updateItem(item, citeCount);
         }
       );
@@ -308,6 +307,7 @@ const gsCitationCount = {
     item.setField('extra', revisedExtraField);
 
     try {
+      $__gsccDebugger.info(`updating item '${item.getField('title')}'`);
       item.saveTx();
     } catch (e) {
       $__gsccDebugger.error(
@@ -331,51 +331,74 @@ const gsCitationCount = {
     request.open('GET', targetUrl, true);
     request.onreadystatechange = () => {
       if (request.readyState === 4) {
-        const retryCheck = request.getResponseHeader('Retry-After');
-        const rawData = request.responseText;
-
-        switch (request.status) {
-          case 200:
-            if (!$__gsccUtil.hasRecaptcha(rawData)) {
-              if ($__gsccUtil.hasCitationResults(rawData)) {
-                $__gsccDebugger.info(
-                  `Google Scholar returned search result, parsing cite count`
-                );
-                callback(item, gsCitationCount.getCiteCount(rawData));
-              } else {
-                $__gsccDebugger.warn(
-                  `Google Scholar found no search result for requested item: ${targetUrl}`
-                );
-              }
-            } else {
-              $__gsccDebugger.warn(
-                'Google Scholar asking for recaptcha, opening window.'
-              );
-              $__gsccUtil.openRecaptchaWindow(targetUrl);
-            }
-            break;
-          case 404:
-            $__gsccDebugger.error(
-              `Google Scholar could not find the requested page.`
-            );
-            break;
-          case 429:
-            if (retryCheck) {
-              $__gsccDebugger.warn(
-                `Google Scholar asks for retry after ${retryCheck} seconds, re-queuing request.`
-              );
-              // TODO requeue
-            }
-            break;
-          default:
-            $__gsccDebugger.error(
-              `Google Scholar fetch failed for item: ${targetUrl}`
-            );
-            break;
-        }
+        gsCitationCount.processCitationResponse(
+          request.status,
+          request.responseText,
+          request.getResponseHeader('Retry-After'),
+          targetUrl,
+          item,
+          callback
+        );
       }
     };
     request.send();
+  },
+  /**
+   * process the fetch request for information
+   * @param {number} requestStatus the http response from the XHR
+   * @param {string} requestData  the http response string from the XHR
+   * @param {string} requestRetry the http retry header, if available
+   * @param {string} targetUrl which url did we request
+   * @param {ZoteroGenericItem} item the item we're looking up
+   * @param {function} callback the updateItem callback.
+   */
+  processCitationResponse: (
+    requestStatus,
+    requestData,
+    requestRetry,
+    targetUrl,
+    item,
+    callback
+  ) => {
+    switch (requestStatus) {
+      case 200:
+        if (!$__gsccUtil.hasRecaptcha(requestData)) {
+          if ($__gsccUtil.hasCitationResults(requestData)) {
+            $__gsccDebugger.info(
+              `Google Scholar returned search result, parsing cite count`
+            );
+            callback(item, gsCitationCount.getCiteCount(requestData));
+          } else {
+            $__gsccDebugger.warn(
+              `Google Scholar found no search result for requested item: ${targetUrl}`
+            );
+          }
+        } else {
+          $__gsccDebugger.warn(
+            'Google Scholar asking for recaptcha, opening window.'
+          );
+          $__gsccUtil.openRecaptchaWindow(targetUrl);
+        }
+        break;
+      case 404:
+        $__gsccDebugger.error(
+          `Google Scholar could not find the requested page.`
+        );
+        break;
+      case 429:
+        if (requestRetry) {
+          $__gsccDebugger.warn(
+            `Google Scholar asks for retry after ${requestRetry} seconds, re-queuing request.`
+          );
+          // TODO requeue
+        }
+        break;
+      default:
+        $__gsccDebugger.error(
+          `Google Scholar fetch failed for item: ${targetUrl}`
+        );
+        break;
+    }
   },
   /**
    * Generate a Google Scholar URL to use to fetch data
