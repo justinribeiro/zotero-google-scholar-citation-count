@@ -1,3 +1,23 @@
+# Google Scholar Citation Count for Zotero
+[![Zotero +v5.0](https://img.shields.io/badge/Zotero-%3E%3D%205.x-brightgreen)](https://www.zotero.org/)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+
+## Latest Version
+
+[![v3.0.2](https://img.shields.io/badge/Download-v3.0.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.0.2/zotero-scholar-citations-3.0.2-fx.xpi)
+
+## Current Test Coverage
+
+![Statements](https://img.shields.io/badge/statements-66.66%25-red.svg)
+![Branches](https://img.shields.io/badge/branches-67.27%25-red.svg)
+![Functions](https://img.shields.io/badge/functions-58.62%25-red.svg)
+![Lines](https://img.shields.io/badge/lines-68.25%25-red.svg)
+
+## Install / Update
+Install via `Tools > Add-Ons` within Zotero and use the `Install Add-On from file...` from the settings icon menu as shown in the screenshot below:
+
+![image](https://user-images.githubusercontent.com/643503/135676188-7ab92614-9376-4271-9277-7b3a5c2a8768.png)
+
 ## Brief Note From Justin
 There are a _lot_ of versions of this plugin from various folks with specific patches. This is my fork, of a fork, of a fork, that originally was from [Anton Beloglazov](https://beloglazov.info/) back in 2011 (and I have not cleaned up the authorship yet within package, I'm getting there :-).
 
