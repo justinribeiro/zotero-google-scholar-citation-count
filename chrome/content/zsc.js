@@ -296,7 +296,7 @@ const gsCitationCount = {
       $__gsccDebugger.info(`existing cite count in extra field, updating`);
       revisedExtraField = fieldExtra.replace(
         RegExp(
-          `${gsCitationCount.__extraEntryPrefix}*${gsCitationCount.__extraEntrySeparator}`,
+          `${gsCitationCount.__extraEntryPrefix}.*${gsCitationCount.__extraEntrySeparator}`,
           'g'
         ),
         buildNewCiteCount

@@ -40,11 +40,11 @@ describe('Verify gsCitationCount sanity', () => {
     const item = singleItemWithCount.data;
     const extra = jest.spyOn(item, 'setField');
     const tx = jest.spyOn(item, 'saveTx');
-    gscc.gsCitationCount.updateItem(item, 505);
+    gscc.gsCitationCount.updateItem(item, 400);
     expect(extra).toHaveBeenCalled();
     expect(tx).toHaveBeenCalled();
     expect(item.getField('extra')).toEqual(
-      'GSCC: 0000505 \nPublisher: SAGE Publications Inc'
+      'GSCC: 0000400 \nPublisher: SAGE Publications Inc'
     );
   });
 
