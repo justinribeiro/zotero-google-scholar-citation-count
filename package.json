@@ -77,12 +77,15 @@
     "env": {
       "browser": true,
       "node": true,
-      "jest/globals": true
+      "jest/globals": true,
+      "es6": true
     },
     "globals": {
+      "Components": false,
       "Zotero": false,
       "ZoteroPane": false,
-      "ZoteroStandalone": false
+      "ZoteroStandalone": false,
+      "Services": false
     }
   },
   "private": true

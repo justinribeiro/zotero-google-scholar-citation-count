@@ -36,3 +36,57 @@ global.gBrowser = {
 };
 
 global.alert = jest.fn();
+
+global.Services = {
+  prefs: {
+    getBranch: function () {
+      return {
+        getPrefType: function (val) {
+          return 'number';
+        },
+        setBoolPref: function () {
+          return true;
+        },
+        setCharPref: function () {
+          return true;
+        },
+        setIntPref: function () {
+          return true;
+        },
+        getBoolPref: function () {},
+        getCharPref: function () {},
+        getIntPref: function () {},
+        clearUserPref: function () {
+          return true;
+        },
+        PREF_BOOL: 'boolean',
+        PREF_STRING: 'string',
+        PREF_INT: 'number',
+      };
+    },
+  },
+};
+
+global.Components = {
+  interfaces: {
+    nsIWindowWatcher: '',
+  },
+  utils: {
+    import: function (val) {
+      return true;
+    },
+  },
+  classes: {
+    '@mozilla.org/embedcomp/window-watcher;1': {
+      getService: function () {
+        return {
+          openWindow: function () {
+            return {
+              closed: false,
+            };
+          },
+        };
+      },
+    },
+  },
+};

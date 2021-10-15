@@ -17,6 +17,7 @@
         em:creator="Justin Ribeiro"
         em:description="Zotero plugin for fetching numbers of citations from Google Scholar."
         em:homepageURL="https://github.com/justinribeiro/zotero-scholar-citations">
+
         <em:type>2</em:type>
         <em:targetApplication RDF:resource="rdf:#$x61SL3"/>
         <em:targetApplication>

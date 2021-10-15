@@ -1,4 +1,4 @@
-const gscc = require('../chrome/content/zsc.js');
+const base = require('../chrome/content/gscc/gscc.js');
 const hasCitation = require('./__data__/gsResponseHasCitation.js');
 const noCitation = require('./__data__/gsResponseNoCitation.js');
 const hasPaperNoCitations = require('./__data__/gsResponseHasPaperNoCitations.js');
@@ -8,40 +8,40 @@ const singleItemNoCount = require('./__data__/zoteroItemsListSingleItemWithNoCou
 const singleItemNoTitle = require('./__data__/zoteroItemsListSingleItemWithNoTitle.js');
 const singleItemNoCreators = require('./__data__/zoteroItemsListSingleItemWithNoCreators.js');
 
-describe('Verify gsCitationCount sanity', () => {
+describe('Verify $__gscc.app sanity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('getCiteCount() should return number', () => {
-    const test = gscc.gsCitationCount.getCiteCount(hasCitation.data);
+    const test = base.$__gscc.app.getCiteCount(hasCitation.data);
     expect(test).toBe(1028);
   });
 
   it('getCiteCount() should return -1, no data', () => {
-    const test = gscc.gsCitationCount.getCiteCount(noCitation.data);
+    const test = base.$__gscc.app.getCiteCount(noCitation.data);
     expect(test).toBe(-1);
   });
 
   it('getCiteCount() should return 0, no count', () => {
-    const test = gscc.gsCitationCount.getCiteCount(hasPaperNoCitations.data);
+    const test = base.$__gscc.app.getCiteCount(hasPaperNoCitations.data);
     expect(test).toBe(0);
   });
 
   it('buildcitecountstring() string + count', () => {
-    const count = gscc.gsCitationCount.getCiteCount(hasCitation.data);
-    const test = gscc.gsCitationCount.buildCiteCountString(count);
+    const count = base.$__gscc.app.getCiteCount(hasCitation.data);
+    const test = base.$__gscc.app.buildCiteCountString(count);
     expect(test).toEqual('GSCC: 0001028');
   });
 
   it('buildcitecountstring() string + no data', () => {
-    const count = gscc.gsCitationCount.getCiteCount(noCitation.data);
-    const test = gscc.gsCitationCount.buildCiteCountString(count);
+    const count = base.$__gscc.app.getCiteCount(noCitation.data);
+    const test = base.$__gscc.app.buildCiteCountString(count);
     expect(test).toEqual('GSCC: NoCitationData');
   });
 
   it('generateItemUrl() should output string', () => {
-    const string = gscc.gsCitationCount.generateItemUrl(singleItemNoCount.data);
+    const string = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
     expect(string).toEqual(
       'https://scholar.google.com/scholar?hl=en&q=Potential%20Biases%20in%20Leadership%20Measures:%20How%20Prototypes,%20Leniency,%20and%20General%20Satisfaction%20Relate%20to%20Ratings%20and%20Rankings%20of%20Transformational%20and%20Transactional%20Leadership%20Constructs&as_epq=&as_occt=title&num=1&as_sauthors=Bass+Avolio&as_ylo=1987&as_yhi=1991'
     );
@@ -51,7 +51,7 @@ describe('Verify gsCitationCount sanity', () => {
     const item = singleItemWithCount.data;
     const extra = jest.spyOn(item, 'setField');
     const tx = jest.spyOn(item, 'saveTx');
-    gscc.gsCitationCount.updateItem(item, 400);
+    base.$__gscc.app.updateItem(item, 400);
     expect(extra).toHaveBeenCalled();
     expect(tx).toHaveBeenCalled();
     expect(item.getField('extra')).toEqual(
@@ -63,7 +63,7 @@ describe('Verify gsCitationCount sanity', () => {
     const item = { ...singleItemNoCount.data };
     const extra = jest.spyOn(item, 'setField');
     const tx = jest.spyOn(item, 'saveTx');
-    gscc.gsCitationCount.updateItem(item, 10);
+    base.$__gscc.app.updateItem(item, 10);
     expect(extra).toHaveBeenCalled();
     expect(tx).toHaveBeenCalled();
     expect(item.getField('extra')).toEqual('GSCC: 0000010 \n');
@@ -71,74 +71,68 @@ describe('Verify gsCitationCount sanity', () => {
 
   it('hasRequiredFields() should return true with sane data', () => {
     const item = { ...singleItemNoCount.data };
-    const test = gscc.gsCitationCount.hasRequiredFields(item);
+    const test = base.$__gscc.app.hasRequiredFields(item);
     expect(test).toBe(true);
   });
 
   it('hasRequiredFields() should return false with no title', () => {
     const item = singleItemNoTitle.data;
-    const test = gscc.gsCitationCount.hasRequiredFields(item);
+    const test = base.$__gscc.app.hasRequiredFields(item);
     expect(test).toBe(false);
   });
 
   it('hasRequiredFields() should return false with no creators', () => {
     const item = singleItemNoCreators.data;
-    const test = gscc.gsCitationCount.hasRequiredFields(item);
+    const test = base.$__gscc.app.hasRequiredFields(item);
     expect(test).toBe(false);
   });
 
   it('processCitationResponse() 200 should set item data', () => {
     const item = { ...singleItemNoCount.data };
-    const targetUrl = gscc.gsCitationCount.generateItemUrl(
-      singleItemNoCount.data
-    );
-    gscc.gsCitationCount.processCitationResponse(
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
       200,
       hasCitation.data,
       null,
       targetUrl,
       item,
       (item, citeCount) => {
-        gscc.gsCitationCount.updateItem(item, citeCount);
+        base.$__gscc.app.updateItem(item, citeCount);
       }
     );
     expect(item.getField('extra')).toEqual('GSCC: 0001028 \n');
   });
 
   it('processCitationResponse() 200 should warn on console when item not found', () => {
-    const warn = jest.spyOn(gscc.$__gsccDebugger, 'warn');
+    const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
     const item = { ...singleItemNoCount.data };
-    const targetUrl = gscc.gsCitationCount.generateItemUrl(
-      singleItemNoCount.data
-    );
-    gscc.gsCitationCount.processCitationResponse(
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
       200,
       noCitation.data,
       null,
       targetUrl,
       item,
       (item, citeCount) => {
-        gscc.gsCitationCount.updateItem(item, citeCount);
+        base.$__gscc.app.updateItem(item, citeCount);
       }
     );
     expect(warn).toHaveBeenCalled();
   });
 
   it('processCitationResponse() 200 should open window on recaptcha', () => {
-    const warn = jest.spyOn(gscc.$__gsccDebugger, 'warn');
-    const openWindow = jest.spyOn(gscc.$__gsccUtil, 'openRecaptchaWindow');
+    const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
+    const openWindow = jest.spyOn(base.$__gscc.util, 'openRecaptchaWindow');
     const item = { ...singleItemNoCount.data };
-    const targetUrl = gscc.gsCitationCount.generateItemUrl(
-      singleItemNoCount.data
-    );
-    gscc.gsCitationCount.processCitationResponse(
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
       200,
       hasRecaptcha.data,
       null,
       targetUrl,
       item,
       (item, citeCount) => {
-        gscc.gsCitationCount.updateItem(item, citeCount);
+        base.$__gscc.app.updateItem(item, citeCount);
       }
     );
     expect(warn).toHaveBeenCalled();
@@ -146,100 +140,70 @@ describe('Verify gsCitationCount sanity', () => {
   });
 
   it('processCitationResponse() 404 should console error', () => {
-    const warn = jest.spyOn(gscc.$__gsccDebugger, 'error');
+    const warn = jest.spyOn(base.$__gscc.debugger, 'error');
     const item = { ...singleItemNoCount.data };
-    const targetUrl = gscc.gsCitationCount.generateItemUrl(
-      singleItemNoCount.data
-    );
-    gscc.gsCitationCount.processCitationResponse(
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
       404,
       hasRecaptcha.data,
       null,
       targetUrl,
       item,
       (item, citeCount) => {
-        gscc.gsCitationCount.updateItem(item, citeCount);
+        base.$__gscc.app.updateItem(item, citeCount);
       }
     );
     expect(warn).toHaveBeenCalled();
   });
 
   it('processCitationResponse() 429 should not console warn if retry set', () => {
-    const warn = jest.spyOn(gscc.$__gsccDebugger, 'warn');
+    const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
     const item = { ...singleItemNoCount.data };
-    const targetUrl = gscc.gsCitationCount.generateItemUrl(
-      singleItemNoCount.data
-    );
-    gscc.gsCitationCount.processCitationResponse(
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
       429,
       hasRecaptcha.data,
       null,
       targetUrl,
       item,
       (item, citeCount) => {
-        gscc.gsCitationCount.updateItem(item, citeCount);
+        base.$__gscc.app.updateItem(item, citeCount);
       }
     );
     expect(warn).toHaveBeenCalledTimes(0);
   });
 
   it('processCitationResponse() 429 should console warn if retry set', () => {
-    const warn = jest.spyOn(gscc.$__gsccDebugger, 'warn');
+    const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
     const item = { ...singleItemNoCount.data };
-    const targetUrl = gscc.gsCitationCount.generateItemUrl(
-      singleItemNoCount.data
-    );
-    gscc.gsCitationCount.processCitationResponse(
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
       429,
       hasRecaptcha.data,
       2000,
       targetUrl,
       item,
       (item, citeCount) => {
-        gscc.gsCitationCount.updateItem(item, citeCount);
+        base.$__gscc.app.updateItem(item, citeCount);
       }
     );
     expect(warn).toHaveBeenCalledTimes(1);
   });
 
   it('processCitationResponse() 500 should console error', () => {
-    const error = jest.spyOn(gscc.$__gsccDebugger, 'error');
+    const error = jest.spyOn(base.$__gscc.debugger, 'error');
     const item = { ...singleItemNoCount.data };
-    const targetUrl = gscc.gsCitationCount.generateItemUrl(
-      singleItemNoCount.data
-    );
-    gscc.gsCitationCount.processCitationResponse(
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
       500,
       hasRecaptcha.data,
       null,
       targetUrl,
       item,
       (item, citeCount) => {
-        gscc.gsCitationCount.updateItem(item, citeCount);
+        base.$__gscc.app.updateItem(item, citeCount);
       }
     );
     expect(error).toHaveBeenCalledTimes(1);
-  });
-
-  it('processItems() should call timers', () => {
-    jest.spyOn(global, 'setTimeout');
-    const item = { ...singleItemNoCount.data };
-    gscc.gsCitationCount.processItems([item]);
-    expect(setTimeout).toHaveBeenCalledTimes(1);
-  });
-
-  it('processItems() should call timers twice', () => {
-    jest.spyOn(global, 'setTimeout');
-    const item = { ...singleItemNoCount.data };
-    gscc.gsCitationCount.processItems([item, item]);
-    expect(setTimeout).toHaveBeenCalledTimes(2);
-  });
-
-  it('processItems() should skip when item does not meet criteria', () => {
-    jest.spyOn(global, 'setTimeout');
-    const itemNoData = { ...singleItemNoTitle.data };
-    const item = { ...singleItemNoCount.data };
-    gscc.gsCitationCount.processItems([itemNoData, item]);
-    expect(setTimeout).toHaveBeenCalledTimes(1);
   });
 });
