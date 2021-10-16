@@ -89,11 +89,9 @@ $__gscc.localization = {
     unSupportedEntryType: 'Updating a Group is not yet implemented.',
   },
   translate: function () {
-    const stringBundle = document.getElementById(
-      'GoogleScholarCitationCount-bundle'
-    );
+    const stringBundle = document.getElementById('gscc-bundle');
 
-    if (stringBundle != null) {
+    if (stringBundle !== null) {
       Object.keys(this.string).map((key) => {
         this.string[key] = stringBundle.getString(key);
       });

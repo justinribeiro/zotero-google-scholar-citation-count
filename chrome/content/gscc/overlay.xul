@@ -1,35 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE overlay SYSTEM "chrome://gscc/locale/overlay.dtd">
 
-<overlay
-    id="GoogleScholarCitationCount-overlay"
-    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <stringbundleset>
-        <stringbundle
-            id="GoogleScholarCitationCount-bundle"
-            src="chrome://gscc/locale/gscc.properties"/>
-    </stringbundleset>
+<overlay id="GoogleScholarCitationCount-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <stringbundleset>
+    <stringbundle id="gscc-bundle" src="chrome://gscc/locale/gscc.properties" />
+  </stringbundleset>
 
-    <script
-        type="application/x-javascript"
-        src="chrome://gscc/content/gscc.js"/>
+  <script type="application/x-javascript" src="chrome://gscc/content/gscc.js" />
 
-    <popup id="zotero-collectionmenu">
-        <menuitem
-            id="zotero-collectionmenu-GoogleScholarCitationCount"
-            label="&zotero.scholarcitations.updateCol.label;"
-            class="menuitem-iconic"
-            image="chrome://zotero/skin/prefs-sync.png"
-            oncommand="$__gscc.handlers.updateCollectionMenuEntry()"/>
-    </popup>
+  <popup id="zotero-collectionmenu">
+    <menuitem label="&zotero.gscc.updateCol.label;" class="menuitem-iconic" image="chrome://zotero/skin/prefs-sync.png" oncommand="$__gscc.handlers.updateCollectionMenuEntry()" />
+  </popup>
 
-    <popup
-        id="zotero-itemmenu">
-        <menuitem
-            id="zotero-itemmenu-GoogleScholarCitationCount"
-            label="&zotero.scholarcitations.update.label;"
-            class="menuitem-iconic"
-            image="chrome://zotero/skin/prefs-sync.png"
-            oncommand="$__gscc.handlers.updateItemMenuEntries()"/>
-    </popup>
+  <popup id="zotero-itemmenu">
+    <menuitem label="&zotero.gscc.update.label;" class="menuitem-iconic" image="chrome://zotero/skin/prefs-sync.png" oncommand="$__gscc.handlers.updateItemMenuEntries()" />
+  </popup>
 </overlay>
