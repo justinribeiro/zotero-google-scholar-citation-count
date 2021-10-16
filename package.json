@@ -1,6 +1,6 @@
 {
-  "name": "zotero-scholar-citations",
-  "version": "3.0.2",
+  "name": "zotero-google-scholar-citation-count",
+  "version": "3.1.0",
   "bugs": {
     "url": "https://github.com/justinribeiro/zotero-google-scholar-citation-count/issues"
   },

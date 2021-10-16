@@ -11,7 +11,7 @@
 
 ## Download Latest Version
 
-[![v3.0.2](https://img.shields.io/badge/Download-v3.0.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.0.2/zotero-scholar-citations-3.0.2-fx.xpi)
+[![v3.1.0](https://img.shields.io/badge/Download-v3.1.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.1.0/zotero-google-scholar-citation-count-3.1.0.xpi)
 
 ## Demo
 
@@ -30,6 +30,14 @@ Make sure to restart Zotero for the plug-in to take effect.
 Right click on an item or collection and select `Update Google Scholar citation count...`, which will then update the item(s) field `extra` with a `GSCC: NNNNNNN`:
 
 ![image](https://user-images.githubusercontent.com/643503/135185125-060d1951-5b20-40b6-98f0-8783d9846ad3.png)
+
+## Advanced: Change the throttle
+
+*[New, v3.1.0]* Internal to the plugin is a random throttle that is on be default to not hammer Google Scholar and attempt to limit temp-bans. If you're wanting to roll the dice and go as fast as possible (which I don't recommend), as of version 3.1.0, you can now change the timing or disable it completely via `Edit > Preferences > Advanced > Config Editor` and by searching for the `extensions.gscc` branch:
+
+![image](https://user-images.githubusercontent.com/643503/137604540-4c1020c3-eabe-4481-afd5-2db4589f4344.png)
+
+I offer no warranty if you flip that flag off and attempt thousands of requests.
 
 ## The Robot Problem
 

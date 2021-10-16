@@ -8,4 +8,4 @@ version=$(npm pkg get version | tr -d '"')
 sed -i "s/^.*em:version.*$/        em:version=\"${version}\"/" install.rdf
 
 mkdir -p build
-zip -r build/zotero-scholar-citations-${version}-fx.xpi chrome/* chrome.manifest install.rdf
+zip -r build/zotero-google-scholar-citation-count-${version}.xpi chrome/* chrome.manifest install.rdf
