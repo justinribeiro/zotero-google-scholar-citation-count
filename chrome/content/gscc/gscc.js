@@ -410,12 +410,10 @@ $__gscc.app = {
     const useQueue = $__gscc.preferences.get(
       $__gscc.preferences.keys.USE_RANDOM_WAIT
     );
-    let queueTimePool;
     let queueMinWaitMs;
     let queueMaxWaitMs;
 
     if (useQueue) {
-      queueTimePool = 0;
       queueMinWaitMs = $__gscc.preferences.get(
         $__gscc.preferences.keys.RANDOM_WAIT_MIN_MS
       );
@@ -424,27 +422,31 @@ $__gscc.app = {
       );
     }
 
-    items.forEach(async (/** @type {ZoteroGenericItem} */ item) => {
-      if (!this.hasRequiredFields(item)) {
+    /**
+     * @param {number} index
+     * @param {ZoteroGenericItem} item
+     */
+    for (const [index, item] of items.entries()) {
+     if (!this.hasRequiredFields(item)) {
         $__gscc.debugger.warn(
           `skipping item '${item.getField(
             'title'
           )}': empty title or missing creator information'`
         );
-      } else {
-        if (useQueue) {
+     } else {
+        // check the prefs in case user override, don't use it on the first item
+        // either way
+        if (useQueue && index > 0) {
           const queueTime = $__gscc.util.randomInteger(
             queueMinWaitMs,
             queueMaxWaitMs
           );
-          queueTimePool = queueTimePool + queueTime;
-          $__gscc.debugger.info(`queued for ${queueTimePool} ms later.`);
-          await $__gscc.util.sleep(queueTimePool);
+
+          $__gscc.debugger.info(`queued for ${queueTime} ms later.`);
+          await $__gscc.util.sleep(queueTime);
         }
 
         const response = await this.retrieveCitationData(item);
-        $__gscc.debugger.info(response);
-
         await this.processCitationResponse(
           response.status,
           response.responseText,
@@ -453,7 +455,7 @@ $__gscc.app = {
           item
         );
       }
-    });
+    }
   },
   /**
    * update a record with the citation data
@@ -537,7 +539,7 @@ $__gscc.app = {
           );
           await $__gscc.util.openRecaptchaWindow(targetUrl);
           const retryResponse = await this.retrieveCitationData(item);
-          this.processCitationResponse(
+          await this.processCitationResponse(
             retryResponse.status,
             retryResponse.responseText,
             1000,
@@ -556,9 +558,8 @@ $__gscc.app = {
           $__gscc.debugger.warn(
             `Google Scholar asks for retry after ${requestRetry} seconds, re-queuing request.`
           );
-          setTimeout(() => {
-            this.retrieveCitationData(item);
-          }, requestRetry * 1000);
+          await $__gscc.util.sleep(requestRetry * 1000);
+          await this.retrieveCitationData(item);
         }
         break;
       default:
