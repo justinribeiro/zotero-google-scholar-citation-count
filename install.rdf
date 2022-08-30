@@ -24,7 +24,7 @@
             <Description>
                 <em:id>zotero@chnm.gmu.edu</em:id>
                 <em:minVersion>5.0.66</em:minVersion>
-                <em:maxVersion>5.0.*</em:maxVersion>
+              <em:maxVersion>6.*.*</em:maxVersion>
             </Description>
         </em:targetApplication>
         <em:localized>
