@@ -8,7 +8,11 @@
         em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
         em:minVersion="2.0"
         em:maxVersion="20.*"/>
-        em:version="3.2.0"
+    <RDF:Description
+        RDF:about="urn:mozilla:install-manifest"
+        em:id="justin@justinribeiro.com"
+        em:name="Google Scholar Citation Count"
+        em:version="3.2.1"
         em:type="2"
         em:creator="Justin Ribeiro"
         em:description="Zotero plugin for fetching numbers of citations from Google Scholar."
@@ -20,7 +24,7 @@
             <Description>
                 <em:id>zotero@chnm.gmu.edu</em:id>
                 <em:minVersion>5.0.66</em:minVersion>
-              <em:maxVersion>6.*.*</em:maxVersion>
+                <em:maxVersion>6.*.*</em:maxVersion>
             </Description>
         </em:targetApplication>
         <em:localized>
