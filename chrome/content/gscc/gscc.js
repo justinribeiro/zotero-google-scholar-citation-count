@@ -465,22 +465,22 @@ $__gscc.app = {
     const buildNewCiteCount = this.buildCiteCountString(citeCount);
     let revisedExtraField;
 
-    if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
-      revisedExtraField = fieldExtra.replace(
-        new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'),
-        buildNewCiteCount
+//     if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
+//       revisedExtraField = fieldExtra.replace(
+//         new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'),
+//         buildNewCiteCount
+//       );
+//       $__gscc.debugger.info(
+//         `existing cite count in extra field, updating to ${buildNewCiteCount} ${revisedExtraField}`
+//       );
+//     } else {
+//       $__gscc.debugger.info(`no existing cite count in extra field, adding`);
+    revisedExtraField =
+      `${buildNewCiteCount}${this.__extraEntrySeparator}`.concat(
+        '',
+        fieldExtra
       );
-      $__gscc.debugger.info(
-        `existing cite count in extra field, updating to ${buildNewCiteCount} ${revisedExtraField}`
-      );
-    } else {
-      $__gscc.debugger.info(`no existing cite count in extra field, adding`);
-      revisedExtraField =
-        `${buildNewCiteCount}${this.__extraEntrySeparator}`.concat(
-          '',
-          fieldExtra
-        );
-    }
+//     }
     item.setField('extra', revisedExtraField);
 
     try {
@@ -609,12 +609,14 @@ $__gscc.app = {
     if (citeCount < 0) {
       data = this.__noData;
     } else {
-      data = $__gscc.util.padCountWithZeros(
-        citeCount.toString(),
-        this.__citeCountStrLength
-      );
+      data = citeCount.toString()
+//         $__gscc.util.padCountWithZeros(
+//         citeCount.toString(),
+//         this.__citeCountStrLength
+//       );
     }
-    return `${this.__extraEntryPrefix}: ${data}`;
+//     return `${this.__extraEntryPrefix}: ${data}`;
+    return `${data} citations (Google Scholar)`;
   },
   /**
    * Parse the raw response for citation count
