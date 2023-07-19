@@ -11,7 +11,7 @@
 
 ## Download Latest Version
 
-[![v3.2.1](https://img.shields.io/badge/Download-v3.2.1-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.1/zotero-google-scholar-citation-count-3.2.1.xpi)
+[![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
 
 ## Demo
 
