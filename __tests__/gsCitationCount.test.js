@@ -1,5 +1,6 @@
 const base = require('../chrome/content/gscc/gscc.js');
 const hasCitation = require('./__data__/gsResponseHasCitation.js');
+const hasCitation2023Version = require('./__data__/gsResponseHasCitationJuly2023GSUpdate.js');
 const noCitation = require('./__data__/gsResponseNoCitation.js');
 const hasPaperNoCitations = require('./__data__/gsResponseHasPaperNoCitations.js');
 const hasRecaptcha = require('./__data__/gsResponseHasRecaptcha.js');
@@ -16,6 +17,11 @@ describe('Verify $__gscc.app sanity', () => {
   it('getCiteCount() should return number', () => {
     const test = base.$__gscc.app.getCiteCount(hasCitation.data);
     expect(test).toBe(1028);
+  });
+
+  it('getCiteCount() should return number from July 2023 GS UI Update', () => {
+    const test = base.$__gscc.app.getCiteCount(hasCitation2023Version.data);
+    expect(test).toBe(2468);
   });
 
   it('getCiteCount() should return -1, no data', () => {
