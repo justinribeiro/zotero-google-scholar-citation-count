@@ -268,7 +268,10 @@ $__gscc.util = {
    * @return {boolean}
    */
   hasCitationResults: function (source) {
-    return source.includes('class="gs_r gs_or gs_scl"');
+    return (
+      source.includes('class="gs_r gs_or gs_scl"') ||
+      source.includes('class="gs_fl gs_flb"')
+    );
   },
   /**
    * Add zero's to a given string
