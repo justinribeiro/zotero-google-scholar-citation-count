@@ -270,6 +270,7 @@ $__gscc.util = {
   hasCitationResults: function (source) {
     return (
       source.includes('class="gs_r gs_or gs_scl"') ||
+      source.includes('class="gs_fl gs_flb gs_invis"') ||
       source.includes('class="gs_fl gs_flb"')
     );
   },
@@ -428,13 +429,13 @@ $__gscc.app = {
      * @param {ZoteroGenericItem} item
      */
     for (const [index, item] of items.entries()) {
-     if (!this.hasRequiredFields(item)) {
+      if (!this.hasRequiredFields(item)) {
         $__gscc.debugger.warn(
           `skipping item '${item.getField(
             'title'
           )}': empty title or missing creator information'`
         );
-     } else {
+      } else {
         // check the prefs in case user override, don't use it on the first item
         // either way
         if (useQueue && index > 0) {
@@ -524,6 +525,7 @@ $__gscc.app = {
     switch (requestStatus) {
       case 200:
         if (!$__gscc.util.hasRecaptcha(requestData)) {
+          $__gscc.debugger.info(`Google Scholar data: ${requestData}`);
           if ($__gscc.util.hasCitationResults(requestData)) {
             $__gscc.debugger.info(
               `Google Scholar returned search result, parsing cite count`
