@@ -37,7 +37,7 @@
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 
-const $__gscc = {};
+$__gscc = {};
 
 $__gscc.debugger = {
   /**
@@ -352,9 +352,77 @@ $__gscc.app = {
    * Initialize our world.
    * @return {void}
    */
-  init: () => {
-    $__gscc.preferences.install();
-    $__gscc.localization.translate();
+  init: ({ id, version, rootURI } = {}) => {
+    if (this.initialized) return;
+    this.id = id;
+    this.version = version;
+    this.rootURI = rootURI;
+    this.initialized = true;
+
+    $__gscc.debugger.info(`Init() Complete! ${this.rootURI}`);
+  },
+
+  main: async function () {
+    // Global properties are included automatically in Zotero 7
+    var host = new URL('https://foo.com/path').host;
+    $__gscc.debugger.info(`Main Engine Start: ${host}`);
+    $__gscc.debugger.info(
+      `extensions.gscc.useRandomWait: ${Zotero.Prefs.get(
+        'extensions.gscc.useRandomWait',
+        true
+      )}`
+    );
+  },
+
+  getActivePane: function () {
+    return Zotero.getActiveZoteroPane();
+  },
+
+  addToWindow: async function (window) {
+    const doc = window.document;
+
+    window.MozXULElement.insertFTLIfNeeded('gscc.ftl');
+
+    const XUL_NS =
+      'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
+
+    // Add menu option
+    const menuitem = doc.createElementNS(XUL_NS, 'menuitem');
+    menuitem.id = 'gscc-get-count';
+    menuitem.setAttribute('label', 'Update Google Scholar citation count');
+    menuitem.addEventListener('command', async () => {
+      await $__gscc.app.updateItemMenuEntries();
+    });
+    doc.getElementById('zotero-itemmenu').appendChild(menuitem);
+
+    $__gscc.debugger.info(`${doc}`);
+    $__gscc.debugger.info(`Option Added to Right Click Menu`);
+
+    const registeredDataKey = await Zotero.ItemTreeManager.registerColumns({
+      dataKey: 'rtitle',
+      label: 'Citation Count',
+      pluginID: 'justin@justinribeiro.com', // Replace with your plugin ID
+      dataProvider: (item, dataKey) => {
+        const fieldExtra = item.getField('extra');
+        if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
+          return parseInt(
+            fieldExtra
+              .match(new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'))[0]
+              .split(' ')[1]
+          );
+        } else {
+          return '';
+        }
+      },
+    });
+  },
+
+  addToAllWindows: function () {
+    var windows = Zotero.getMainWindows();
+    for (let win of windows) {
+      if (!win.ZoteroPane) continue;
+      this.addToWindow(win);
+    }
   },
   /**
    * Verify is the Zotero item record has a title and creators (otherwise we
@@ -366,18 +434,19 @@ $__gscc.app = {
     return item.getField('title') !== '' && item.getCreators().length > 0;
   },
   updateCollectionMenuEntry: async function () {
-    if (!ZoteroPane.canEditLibrary()) {
+    const zoteroPane = $__gscc.app.getActivePane();
+    if (!zoteroPane.canEditLibrary()) {
       alert($__gscc.localization.string.lackPermissions);
       return;
     }
 
-    const group = ZoteroPane.getSelectedGroup();
+    const group = zoteroPane.getSelectedGroup();
     if (group) {
-      this.updateGroup(ZoteroPane.getSelectedGroup());
+      this.updateGroup(zoteroPane.getSelectedGroup());
       return;
     }
 
-    const collection = ZoteroPane.getSelectedCollection();
+    const collection = zoteroPane.getSelectedCollection();
     if (collection) {
       await this.updateCollection(collection);
       return;
@@ -387,11 +456,12 @@ $__gscc.app = {
     return;
   },
   updateItemMenuEntries: async function () {
-    if (!ZoteroPane.canEditLibrary()) {
+    const zoteroPane = $__gscc.app.getActivePane();
+    if (!zoteroPane.canEditLibrary()) {
       alert($__gscc.localization.string.lackPermissions);
       return;
     }
-    await this.processItems(ZoteroPane.getSelectedItems());
+    await this.processItems(zoteroPane.getSelectedItems());
   },
   updateGroup: function () {
     alert($__gscc.localization.string.unSupportedGroupCollection);
@@ -525,7 +595,6 @@ $__gscc.app = {
     switch (requestStatus) {
       case 200:
         if (!$__gscc.util.hasRecaptcha(requestData)) {
-          $__gscc.debugger.info(`Google Scholar data: ${requestData}`);
           if ($__gscc.util.hasCitationResults(requestData)) {
             $__gscc.debugger.info(
               `Google Scholar returned search result, parsing cite count`
@@ -658,9 +727,7 @@ $__gscc.handlers = {
   },
 };
 
-window.$__gscc = $__gscc;
-
-window.addEventListener('load', () => window.$__gscc.app.init(), false);
+//window.addEventListener('load', () => window.$__gscc.app.init(), false);
 
 // For testing only
 if (typeof module !== 'undefined' && module.exports) {
