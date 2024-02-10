@@ -26,10 +26,9 @@ function onMainWindowUnload({ window }) {
 }
 
 function shutdown() {
-  log('Shutting down GSCC 4.0.0');
   $__gscc.app.removeFromAllWindows();
 }
 
 function uninstall() {
-  log('Uninstalled GSCC 4.0.0');
+  $__gscc.app.removeFromAllWindows();
 }

@@ -290,7 +290,9 @@ $__gscc.util = {
    * @return {Promise}
    */
   openRecaptchaWindow: async function (targetUrl) {
-    alert($__gscc.localization.string.recaptchaAlert);
+    const window = Zotero.getMainWindow();
+
+    window.alert($__gscc.localization.string.recaptchaAlert);
 
     let intervalWindowCloseState;
 
@@ -304,17 +306,7 @@ $__gscc.util = {
       }
     };
 
-    const windowWatcher = Components.classes[
-      '@mozilla.org/embedcomp/window-watcher;1'
-    ].getService(Components.interfaces.nsIWindowWatcher);
-
-    const recaptchaWindow = windowWatcher.openWindow(
-      window,
-      targetUrl,
-      '_blank',
-      'chrome,dialog,modal,width=950,height=700,centerscreen,resizable',
-      null
-    );
+    const recaptchaWindow = Zotero.openInViewer(targetUrl);
 
     return new Promise((resolve) =>
       checkWindowClosed(recaptchaWindow, resolve)
@@ -389,6 +381,10 @@ $__gscc.app = {
     // Add menu option
     const menuitem = doc.createElementNS(XUL_NS, 'menuitem');
     menuitem.id = 'gscc-get-count';
+    menuitem.classList.add(
+      'menuitem-iconic',
+      'zotero-menuitem-retrieve-metadata'
+    );
     menuitem.setAttribute('label', 'Update Google Scholar citation count');
     menuitem.addEventListener('command', async () => {
       await $__gscc.app.updateItemMenuEntries();
@@ -398,30 +394,45 @@ $__gscc.app = {
     $__gscc.debugger.info(`${doc}`);
     $__gscc.debugger.info(`Option Added to Right Click Menu`);
 
-    const registeredDataKey = await Zotero.ItemTreeManager.registerColumns({
-      dataKey: 'rtitle',
-      label: 'Citation Count',
-      pluginID: 'justin@justinribeiro.com', // Replace with your plugin ID
-      dataProvider: (item, dataKey) => {
-        const fieldExtra = item.getField('extra');
-        if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
-          return parseInt(
-            fieldExtra
-              .match(new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'))[0]
-              .split(' ')[1]
-          );
-        } else {
-          return '';
-        }
-      },
-    });
+    $__gscc.app.registeredDataKey =
+      await Zotero.ItemTreeManager.registerColumns({
+        dataKey: 'gsccCount',
+        label: 'Citation Count',
+        pluginID: 'justin@justinribeiro.com', // Replace with your plugin ID
+        dataProvider: (item, dataKey) => {
+          const fieldExtra = item.getField('extra');
+          if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
+            return parseInt(
+              fieldExtra
+                .match(new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'))[0]
+                .split(' ')[1]
+            );
+          } else {
+            return '';
+          }
+        },
+      });
   },
 
+  removeFromWindow: async function (win) {
+    const doc = win.document;
+    doc.querySelector('#gscc-get-count').remove();
+    await Zotero.ItemTreeManager.unregisterColumns(
+      $__gscc.app.registeredDataKey
+    );
+  },
   addToAllWindows: function () {
     var windows = Zotero.getMainWindows();
     for (let win of windows) {
       if (!win.ZoteroPane) continue;
       this.addToWindow(win);
+    }
+  },
+  removeFromAllWindows: function () {
+    var windows = Zotero.getMainWindows();
+    for (let win of windows) {
+      if (!win.ZoteroPane) continue;
+      this.removeFromWindow(win);
     }
   },
   /**
@@ -435,8 +446,10 @@ $__gscc.app = {
   },
   updateCollectionMenuEntry: async function () {
     const zoteroPane = $__gscc.app.getActivePane();
+    const window = Zotero.getMainWindow();
+
     if (!zoteroPane.canEditLibrary()) {
-      alert($__gscc.localization.string.lackPermissions);
+      window.alert($__gscc.localization.string.lackPermissions);
       return;
     }
 
@@ -452,19 +465,22 @@ $__gscc.app = {
       return;
     }
 
-    alert($__gscc.localization.string.unSupportedEntryType);
+    window.alert($__gscc.localization.string.unSupportedEntryType);
     return;
   },
   updateItemMenuEntries: async function () {
     const zoteroPane = $__gscc.app.getActivePane();
+    const window = Zotero.getMainWindow();
+
     if (!zoteroPane.canEditLibrary()) {
-      alert($__gscc.localization.string.lackPermissions);
+      window.alert($__gscc.localization.string.lackPermissions);
       return;
     }
     await this.processItems(zoteroPane.getSelectedItems());
   },
   updateGroup: function () {
-    alert($__gscc.localization.string.unSupportedGroupCollection);
+    const window = Zotero.getMainWindow();
+    window.alert($__gscc.localization.string.unSupportedGroupCollection);
     return;
   },
   updateCollection: async function (collection) {
@@ -619,6 +635,20 @@ $__gscc.app = {
             item
           );
         }
+        break;
+      case 403:
+        $__gscc.debugger.warn(
+          'Google Scholar thinks we are sus, opening window.'
+        );
+        await $__gscc.util.openRecaptchaWindow(targetUrl);
+        const retryResponse = await this.retrieveCitationData(item);
+        await this.processCitationResponse(
+          retryResponse.status,
+          retryResponse.responseText,
+          1000,
+          retryResponse.responseURL,
+          item
+        );
         break;
       case 404:
         $__gscc.debugger.error(
