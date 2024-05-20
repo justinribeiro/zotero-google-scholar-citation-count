@@ -11,12 +11,23 @@
 
 ## Download Latest Version
 
-[![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
+Zotero 7 Beta - [![v4.0.0](https://img.shields.io/badge/Download-v4.0.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.0.0/zotero-google-scholar-citation-count-4.0.0.xpi)
+
+Zotero 6 - [![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
+
+## New in v4.0.0
+This release is specifically adding the initial support for the upcoming Zotero 7. The most significant feature addition is that there is now a custom data column available that allows seeing Citation Count. See [the sample video](https://www.youtube.com/watch?v=wgW74lL_tgI) for usage. If you find issues in Zotero 7 beta, please let me know so we can squash some bugs!
+
+## A Note About Citation Counts
+
+A common reported issue in the tracker is "Justin, it doesn't report the correct number of citations". I understand the frustration. Many people offer varying solutions that often fit for very limited cases or papers, but I cannot on the whole edge case them all. However, if you're looking for a definitive number of citations for a given resource, Google Scholar is not the tool for that usage. GS has known issues with this (it'll report wildly in some cases, see https://fediscience.org/@ct_bergstrom/111303567826479298 for one such case).
+
+This plugin does its best to try to use what Google Scholar returns as a guidepost and nothing more. There isn't much I can do plugin-wise to resolve this without using making it very very opinionated (which I have tried to keep in check, because that has it's own problems for maintenance and viability).
+
+Feel free to report this issue as you see fit; I will always try to resolve as best I can!
 
 ## Demo
-
 https://user-images.githubusercontent.com/643503/135680344-1887a48f-07e6-424f-aa9a-540092041baa.mp4
-
 
 ## Install / Update
 Install via `Tools > Add-Ons` within Zotero and use the `Install Add-On from file...` from the settings icon menu as shown in the screenshot below:
