@@ -356,8 +356,6 @@ $__gscc.app = {
 
   main: async function () {
     // Global properties are included automatically in Zotero 7
-    var host = new URL('https://foo.com/path').host;
-    $__gscc.debugger.info(`Main Engine Start: ${host}`);
     $__gscc.debugger.info(
       `extensions.gscc.useRandomWait: ${Zotero.Prefs.get(
         'extensions.gscc.useRandomWait',
@@ -416,10 +414,17 @@ $__gscc.app = {
 
   removeFromWindow: async function (win) {
     const doc = win.document;
-    doc.querySelector('#gscc-get-count').remove();
     await Zotero.ItemTreeManager.unregisterColumns(
       $__gscc.app.registeredDataKey
     );
+    // failsafe
+    try {
+      doc.querySelector('#gscc-get-count').remove();
+    } catch (error) {
+      $__gscc.debugger.info(
+        'Unable to remove custom column; already cleaned up.'
+      );
+    }
   },
   addToAllWindows: function () {
     var windows = Zotero.getMainWindows();
@@ -608,6 +613,8 @@ $__gscc.app = {
     item
   ) {
     $__gscc.debugger.info(requestStatus, requestData);
+    let retryResponse;
+
     switch (requestStatus) {
       case 200:
         if (!$__gscc.util.hasRecaptcha(requestData)) {
@@ -626,7 +633,7 @@ $__gscc.app = {
             'Google Scholar asking for recaptcha, opening window.'
           );
           await $__gscc.util.openRecaptchaWindow(targetUrl);
-          const retryResponse = await this.retrieveCitationData(item);
+          retryResponse = await this.retrieveCitationData(item);
           await this.processCitationResponse(
             retryResponse.status,
             retryResponse.responseText,
@@ -641,7 +648,7 @@ $__gscc.app = {
           'Google Scholar thinks we are sus, opening window.'
         );
         await $__gscc.util.openRecaptchaWindow(targetUrl);
-        const retryResponse = await this.retrieveCitationData(item);
+        retryResponse = await this.retrieveCitationData(item);
         await this.processCitationResponse(
           retryResponse.status,
           retryResponse.responseText,
@@ -756,8 +763,6 @@ $__gscc.handlers = {
     await $__gscc.app.updateItemMenuEntries();
   },
 };
-
-//window.addEventListener('load', () => window.$__gscc.app.init(), false);
 
 // For testing only
 if (typeof module !== 'undefined' && module.exports) {

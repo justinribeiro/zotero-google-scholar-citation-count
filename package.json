@@ -81,6 +81,7 @@
       "es6": true
     },
     "globals": {
+      "$__gscc": false,
       "Components": false,
       "Zotero": false,
       "ZoteroPane": false,
