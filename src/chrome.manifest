@@ -1,6 +1,3 @@
 content gscc chrome/content/gscc/
-locale  gscc  en-GB   chrome/locale/en-GB/
 locale  gscc  en-US   chrome/locale/en-US/
-locale  gscc  ru-RU   chrome/locale/ru-RU/
-locale  gscc  it-IT   chrome/locale/it-IT/
 overlay chrome://zotero/content/zoteroPane.xul chrome://gscc/content/overlay.xul

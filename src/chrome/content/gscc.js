@@ -37,7 +37,7 @@
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 
-const $__gscc = {};
+$__gscc = {};
 
 $__gscc.debugger = {
   /**
@@ -290,7 +290,9 @@ $__gscc.util = {
    * @return {Promise}
    */
   openRecaptchaWindow: async function (targetUrl) {
-    alert($__gscc.localization.string.recaptchaAlert);
+    const window = Zotero.getMainWindow();
+
+    window.alert($__gscc.localization.string.recaptchaAlert);
 
     let intervalWindowCloseState;
 
@@ -304,17 +306,7 @@ $__gscc.util = {
       }
     };
 
-    const windowWatcher = Components.classes[
-      '@mozilla.org/embedcomp/window-watcher;1'
-    ].getService(Components.interfaces.nsIWindowWatcher);
-
-    const recaptchaWindow = windowWatcher.openWindow(
-      window,
-      targetUrl,
-      '_blank',
-      'chrome,dialog,modal,width=950,height=700,centerscreen,resizable',
-      null
-    );
+    const recaptchaWindow = Zotero.openInViewer(targetUrl);
 
     return new Promise((resolve) =>
       checkWindowClosed(recaptchaWindow, resolve)
@@ -352,9 +344,101 @@ $__gscc.app = {
    * Initialize our world.
    * @return {void}
    */
-  init: () => {
-    $__gscc.preferences.install();
-    $__gscc.localization.translate();
+  init: ({ id, version, rootURI } = {}) => {
+    if (this.initialized) return;
+    this.id = id;
+    this.version = version;
+    this.rootURI = rootURI;
+    this.initialized = true;
+
+    $__gscc.debugger.info(`Init() Complete! ${this.rootURI}`);
+  },
+
+  main: async function () {
+    // Global properties are included automatically in Zotero 7
+    $__gscc.debugger.info(
+      `extensions.gscc.useRandomWait: ${Zotero.Prefs.get(
+        'extensions.gscc.useRandomWait',
+        true
+      )}`
+    );
+  },
+
+  getActivePane: function () {
+    return Zotero.getActiveZoteroPane();
+  },
+
+  addToWindow: async function (window) {
+    const doc = window.document;
+
+    window.MozXULElement.insertFTLIfNeeded('gscc.ftl');
+
+    const XUL_NS =
+      'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
+
+    // Add menu option
+    const menuitem = doc.createElementNS(XUL_NS, 'menuitem');
+    menuitem.id = 'gscc-get-count';
+    menuitem.classList.add(
+      'menuitem-iconic',
+      'zotero-menuitem-retrieve-metadata'
+    );
+    menuitem.setAttribute('label', 'Update Google Scholar citation count');
+    menuitem.addEventListener('command', async () => {
+      await $__gscc.app.updateItemMenuEntries();
+    });
+    doc.getElementById('zotero-itemmenu').appendChild(menuitem);
+
+    $__gscc.debugger.info(`${doc}`);
+    $__gscc.debugger.info(`Option Added to Right Click Menu`);
+
+    $__gscc.app.registeredDataKey =
+      await Zotero.ItemTreeManager.registerColumns({
+        dataKey: 'gsccCount',
+        label: 'Citation Count',
+        pluginID: 'justin@justinribeiro.com', // Replace with your plugin ID
+        dataProvider: (item, dataKey) => {
+          const fieldExtra = item.getField('extra');
+          if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
+            return parseInt(
+              fieldExtra
+                .match(new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'))[0]
+                .split(' ')[1]
+            );
+          } else {
+            return '';
+          }
+        },
+      });
+  },
+
+  removeFromWindow: async function (win) {
+    const doc = win.document;
+    await Zotero.ItemTreeManager.unregisterColumns(
+      $__gscc.app.registeredDataKey
+    );
+    // failsafe
+    try {
+      doc.querySelector('#gscc-get-count').remove();
+    } catch (error) {
+      $__gscc.debugger.info(
+        'Unable to remove custom column; already cleaned up.'
+      );
+    }
+  },
+  addToAllWindows: function () {
+    var windows = Zotero.getMainWindows();
+    for (let win of windows) {
+      if (!win.ZoteroPane) continue;
+      this.addToWindow(win);
+    }
+  },
+  removeFromAllWindows: function () {
+    var windows = Zotero.getMainWindows();
+    for (let win of windows) {
+      if (!win.ZoteroPane) continue;
+      this.removeFromWindow(win);
+    }
   },
   /**
    * Verify is the Zotero item record has a title and creators (otherwise we
@@ -366,35 +450,42 @@ $__gscc.app = {
     return item.getField('title') !== '' && item.getCreators().length > 0;
   },
   updateCollectionMenuEntry: async function () {
-    if (!ZoteroPane.canEditLibrary()) {
-      alert($__gscc.localization.string.lackPermissions);
+    const zoteroPane = $__gscc.app.getActivePane();
+    const window = Zotero.getMainWindow();
+
+    if (!zoteroPane.canEditLibrary()) {
+      window.alert($__gscc.localization.string.lackPermissions);
       return;
     }
 
-    const group = ZoteroPane.getSelectedGroup();
+    const group = zoteroPane.getSelectedGroup();
     if (group) {
-      this.updateGroup(ZoteroPane.getSelectedGroup());
+      this.updateGroup(zoteroPane.getSelectedGroup());
       return;
     }
 
-    const collection = ZoteroPane.getSelectedCollection();
+    const collection = zoteroPane.getSelectedCollection();
     if (collection) {
       await this.updateCollection(collection);
       return;
     }
 
-    alert($__gscc.localization.string.unSupportedEntryType);
+    window.alert($__gscc.localization.string.unSupportedEntryType);
     return;
   },
   updateItemMenuEntries: async function () {
-    if (!ZoteroPane.canEditLibrary()) {
-      alert($__gscc.localization.string.lackPermissions);
+    const zoteroPane = $__gscc.app.getActivePane();
+    const window = Zotero.getMainWindow();
+
+    if (!zoteroPane.canEditLibrary()) {
+      window.alert($__gscc.localization.string.lackPermissions);
       return;
     }
-    await this.processItems(ZoteroPane.getSelectedItems());
+    await this.processItems(zoteroPane.getSelectedItems());
   },
   updateGroup: function () {
-    alert($__gscc.localization.string.unSupportedGroupCollection);
+    const window = Zotero.getMainWindow();
+    window.alert($__gscc.localization.string.unSupportedGroupCollection);
     return;
   },
   updateCollection: async function (collection) {
@@ -522,10 +613,11 @@ $__gscc.app = {
     item
   ) {
     $__gscc.debugger.info(requestStatus, requestData);
+    let retryResponse;
+
     switch (requestStatus) {
       case 200:
         if (!$__gscc.util.hasRecaptcha(requestData)) {
-          $__gscc.debugger.info(`Google Scholar data: ${requestData}`);
           if ($__gscc.util.hasCitationResults(requestData)) {
             $__gscc.debugger.info(
               `Google Scholar returned search result, parsing cite count`
@@ -541,7 +633,7 @@ $__gscc.app = {
             'Google Scholar asking for recaptcha, opening window.'
           );
           await $__gscc.util.openRecaptchaWindow(targetUrl);
-          const retryResponse = await this.retrieveCitationData(item);
+          retryResponse = await this.retrieveCitationData(item);
           await this.processCitationResponse(
             retryResponse.status,
             retryResponse.responseText,
@@ -550,6 +642,20 @@ $__gscc.app = {
             item
           );
         }
+        break;
+      case 403:
+        $__gscc.debugger.warn(
+          'Google Scholar thinks we are sus, opening window.'
+        );
+        await $__gscc.util.openRecaptchaWindow(targetUrl);
+        retryResponse = await this.retrieveCitationData(item);
+        await this.processCitationResponse(
+          retryResponse.status,
+          retryResponse.responseText,
+          1000,
+          retryResponse.responseURL,
+          item
+        );
         break;
       case 404:
         $__gscc.debugger.error(
@@ -657,10 +763,6 @@ $__gscc.handlers = {
     await $__gscc.app.updateItemMenuEntries();
   },
 };
-
-window.$__gscc = $__gscc;
-
-window.addEventListener('load', () => window.$__gscc.app.init(), false);
 
 // For testing only
 if (typeof module !== 'undefined' && module.exports) {

@@ -1,6 +1,6 @@
 {
   "name": "zotero-google-scholar-citation-count",
-  "version": "3.2.2",
+  "version": "4.0.0",
   "bugs": {
     "url": "https://github.com/justinribeiro/zotero-google-scholar-citation-count/issues"
   },
@@ -81,6 +81,7 @@
       "es6": true
     },
     "globals": {
+      "$__gscc": false,
       "Components": false,
       "Zotero": false,
       "ZoteroPane": false,
