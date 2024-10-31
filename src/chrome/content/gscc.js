@@ -396,15 +396,24 @@ $__gscc.app = {
       await Zotero.ItemTreeManager.registerColumns({
         dataKey: 'gsccCount',
         label: 'Citation Count',
-        pluginID: 'justin@justinribeiro.com', // Replace with your plugin ID
+        pluginID: 'justin@justinribeiro.com',
         dataProvider: (item, dataKey) => {
           const fieldExtra = item.getField('extra');
           if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
-            return parseInt(
-              fieldExtra
-                .match(new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'))[0]
-                .split(' ')[1]
-            );
+            let count = 0;
+            try {
+              const regex = new RegExp(
+                String.raw`${this.__extraEntryPrefix}:(\s*\d+)`,
+                'g'
+              );
+              // meh
+              const match = fieldExtra.match(regex)[0];
+              const split = match.split(':')[1].trim();
+              count = parseInt(split);
+            } catch {
+              // dead case for weird behavior
+            }
+            return count;
           } else {
             return '';
           }
