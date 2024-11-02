@@ -708,14 +708,9 @@ $__gscc.app = {
         .join('+')}`;
     }
 
-    const year = parseInt(item.getField('year'));
-    if (year) {
-      paramDateRange = `&as_ylo=${year - 2}&as_yhi=${year + 2}`;
-    }
-
-    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q=${item.getField(
-      'title'
-    )}&as_epq=&as_occt=title&num=1${paramAuthors}${paramDateRange}`;
+    const title = item.getField('title');
+    const doi = item.getField('DOI') ? ` doi:${item.getField('DOI')}` : '';
+    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q=${title}${doi}&as_epq=&as_occt=title&num=1${paramAuthors}`;
 
     return encodeURI(targetUrl);
   },
