@@ -693,7 +693,6 @@ $__gscc.app = {
    * @returns string
    */
   generateItemUrl: function (item) {
-    let paramDateRange = '';
     let paramAuthors = '';
 
     /**
@@ -704,18 +703,16 @@ $__gscc.app = {
     if (creators.length > 0) {
       paramAuthors = `&as_sauthors=${creators
         .map((author) => author.lastName)
-        .slice(0, 3)
+        .slice(0, 5)
         .join('+')}`;
     }
 
-    const year = parseInt(item.getField('year'));
-    if (year) {
-      paramDateRange = `&as_ylo=${year - 2}&as_yhi=${year + 2}`;
-    }
-
-    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q=${item.getField(
+    // Dead match; switch out in v4.1 for improved hits
+    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q="${item.getField(
       'title'
-    )}&as_epq=&as_occt=title&num=1${paramAuthors}${paramDateRange}`;
+    )}"&as_epq=&as_occt=title&num=1${paramAuthors}`;
+
+    $__gscc.debugger.info(`Endpoint test: ${targetUrl}`);
 
     return encodeURI(targetUrl);
   },
