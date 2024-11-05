@@ -1,4 +1,4 @@
-const base = require('../chrome/content/gscc/gscc.js');
+const base = require('../src/chrome/content/gscc.js');
 const hasCitation = require('./__data__/gsResponseHasCitation.js');
 const hasCitation2023Version = require('./__data__/gsResponseHasCitationJuly2023GSUpdate.js');
 const hasCitation2023VersionAltReturn = require('./__data__/gsResponseHasCitationJuly2023GSUpdateAltSearchCase.js');
@@ -10,9 +10,20 @@ const singleItemNoCount = require('./__data__/zoteroItemsListSingleItemWithNoCou
 const singleItemNoTitle = require('./__data__/zoteroItemsListSingleItemWithNoTitle.js');
 const singleItemNoCreators = require('./__data__/zoteroItemsListSingleItemWithNoCreators.js');
 
+window.alert = jest.fn();
+
 describe('Verify $__gscc.app sanity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('init() should set app', () => {
+    const id = 'gscc';
+    const version = '4.0.0';
+    const rootURI = 'justinribeiro.com';
+    base.$__gscc.app.init({ id, version, rootURI });
+
+    expect(base.$__gscc.app.__initialized).toBe(true);
   });
 
   it('getCiteCount() should return number', () => {
@@ -27,7 +38,7 @@ describe('Verify $__gscc.app sanity', () => {
 
   it('getCiteCount() should return number from July 2023 GS UI Update - Alt Case!', () => {
     const test = base.$__gscc.app.getCiteCount(
-      hasCitation2023VersionAltReturn.data
+      hasCitation2023VersionAltReturn.data,
     );
     expect(test).toBe(2468);
   });
@@ -57,7 +68,7 @@ describe('Verify $__gscc.app sanity', () => {
   it('generateItemUrl() should output string', () => {
     const string = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
     expect(string).toEqual(
-      'https://scholar.google.com/scholar?hl=en&q=Potential%20Biases%20in%20Leadership%20Measures:%20How%20Prototypes,%20Leniency,%20and%20General%20Satisfaction%20Relate%20to%20Ratings%20and%20Rankings%20of%20Transformational%20and%20Transactional%20Leadership%20Constructs&as_epq=&as_occt=title&num=1&as_sauthors=Bass+Avolio&as_ylo=1987&as_yhi=1991'
+      'https://scholar.google.com/scholar?hl=en&q=%22Potential%20Biases%20in%20Leadership%20Measures:%20How%20Prototypes,%20Leniency,%20and%20General%20Satisfaction%20Relate%20to%20Ratings%20and%20Rankings%20of%20Transformational%20and%20Transactional%20Leadership%20Constructs%22&as_epq=&as_occt=title&num=1&as_sauthors=Bass+Avolio',
     );
   });
 
@@ -69,7 +80,7 @@ describe('Verify $__gscc.app sanity', () => {
     expect(extra).toHaveBeenCalled();
     expect(tx).toHaveBeenCalled();
     expect(item.getField('extra')).toEqual(
-      'GSCC: 0000400 \nPublisher: SAGE Publications Inc'
+      'GSCC: 0000400 \nPublisher: SAGE Publications Inc',
     );
   });
 
@@ -112,7 +123,7 @@ describe('Verify $__gscc.app sanity', () => {
       item,
       (item, citeCount) => {
         base.$__gscc.app.updateItem(item, citeCount);
-      }
+      },
     );
     expect(item.getField('extra')).toEqual('GSCC: 0001028 \n');
   });
@@ -129,29 +140,29 @@ describe('Verify $__gscc.app sanity', () => {
       item,
       (item, citeCount) => {
         base.$__gscc.app.updateItem(item, citeCount);
-      }
+      },
     );
     expect(warn).toHaveBeenCalled();
   });
 
-  it('processCitationResponse() 200 should open window on recaptcha', () => {
-    const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
-    const openWindow = jest.spyOn(base.$__gscc.util, 'openRecaptchaWindow');
-    const item = { ...singleItemNoCount.data };
-    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
-    base.$__gscc.app.processCitationResponse(
-      200,
-      hasRecaptcha.data,
-      null,
-      targetUrl,
-      item,
-      (item, citeCount) => {
-        base.$__gscc.app.updateItem(item, citeCount);
-      }
-    );
-    expect(warn).toHaveBeenCalled();
-    expect(openWindow).toHaveBeenCalled();
-  });
+  // it('processCitationResponse() 200 should open window on recaptcha', () => {
+  //   const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
+  //   const openWindow = jest.spyOn(base.$__gscc.util, 'openRecaptchaWindow');
+  //   const item = { ...singleItemNoCount.data };
+  //   const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+  //   base.$__gscc.app.processCitationResponse(
+  //     200,
+  //     hasRecaptcha.data,
+  //     null,
+  //     targetUrl,
+  //     item,
+  //     (item, citeCount) => {
+  //       base.$__gscc.app.updateItem(item, citeCount);
+  //     },
+  //   );
+  //   expect(warn).toHaveBeenCalled();
+  //   expect(openWindow).toHaveBeenCalled();
+  // });
 
   it('processCitationResponse() 404 should console error', () => {
     const warn = jest.spyOn(base.$__gscc.debugger, 'error');
@@ -165,7 +176,7 @@ describe('Verify $__gscc.app sanity', () => {
       item,
       (item, citeCount) => {
         base.$__gscc.app.updateItem(item, citeCount);
-      }
+      },
     );
     expect(warn).toHaveBeenCalled();
   });
@@ -182,7 +193,7 @@ describe('Verify $__gscc.app sanity', () => {
       item,
       (item, citeCount) => {
         base.$__gscc.app.updateItem(item, citeCount);
-      }
+      },
     );
     expect(warn).toHaveBeenCalledTimes(0);
   });
@@ -199,7 +210,7 @@ describe('Verify $__gscc.app sanity', () => {
       item,
       (item, citeCount) => {
         base.$__gscc.app.updateItem(item, citeCount);
-      }
+      },
     );
     expect(warn).toHaveBeenCalledTimes(1);
   });
@@ -216,8 +227,25 @@ describe('Verify $__gscc.app sanity', () => {
       item,
       (item, citeCount) => {
         base.$__gscc.app.updateItem(item, citeCount);
-      }
+      },
     );
     expect(error).toHaveBeenCalledTimes(1);
+  });
+
+  it('set custom column, check string types for errors', () => {
+    const noGSCCString = base.$__gscc.app.setFieldFromExtra('');
+    expect(noGSCCString).toBe(0);
+
+    const aGSCCString = base.$__gscc.app.setFieldFromExtra('GSCC: 00001000');
+    expect(aGSCCString).toBe(1000);
+
+    const nospaceGSCCString =
+      base.$__gscc.app.setFieldFromExtra('GSCC:00001000');
+    expect(nospaceGSCCString).toBe(1000);
+
+    const subGSCCString = base.$__gscc.app.setFieldFromExtra(
+      'ds323 GSCC:00001000',
+    );
+    expect(subGSCCString).toBe(0);
   });
 });

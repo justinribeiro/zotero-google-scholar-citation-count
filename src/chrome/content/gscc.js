@@ -340,6 +340,7 @@ $__gscc.app = {
    * @private
    */
   __apiEndpoint: 'https://scholar.google.com/',
+  __initialized: false,
   /**
    * Initialize our world.
    * @return {void}
@@ -349,7 +350,9 @@ $__gscc.app = {
     this.id = id;
     this.version = version;
     this.rootURI = rootURI;
-    this.initialized = true;
+
+    // sanity
+    $__gscc.app.__initialized = true;
 
     $__gscc.debugger.info(`Init() Complete! ${this.rootURI}`);
   },
@@ -398,27 +401,33 @@ $__gscc.app = {
         label: 'Citation Count',
         pluginID: 'justin@justinribeiro.com',
         dataProvider: (item, dataKey) => {
-          const fieldExtra = item.getField('extra');
-          if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
-            let count = 0;
-            try {
-              const regex = new RegExp(
-                String.raw`${this.__extraEntryPrefix}:(\s*\d+)`,
-                'g'
-              );
-              // meh
-              const match = fieldExtra.match(regex)[0];
-              const split = match.split(':')[1].trim();
-              count = parseInt(split);
-            } catch {
-              // dead case for weird behavior
-            }
-            return count;
-          } else {
-            return '';
-          }
+          const data = item.getField('extra');
+          return setFieldFromExtra(data);
         },
       });
+  },
+
+  /**
+   * Set the custom column by parsing the extra field
+   * @param {String} extraString
+   */
+  setFieldFromExtra: function (extraString) {
+    let count = 0;
+    if (extraString.startsWith(this.__extraEntryPrefix)) {
+      try {
+        const regex = new RegExp(
+          String.raw`${this.__extraEntryPrefix}:(\s*\d+)`,
+          'g'
+        );
+        // meh
+        const match = extraString.match(regex)[0];
+        const split = match.split(':')[1].trim();
+        count = parseInt(split);
+      } catch {
+        // dead case for weird behavior
+      }
+    }
+    return count;
   },
 
   removeFromWindow: async function (win) {
@@ -623,7 +632,6 @@ $__gscc.app = {
   ) {
     $__gscc.debugger.info(requestStatus, requestData);
     let retryResponse;
-
     switch (requestStatus) {
       case 200:
         if (!$__gscc.util.hasRecaptcha(requestData)) {
