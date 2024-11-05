@@ -1,4 +1,4 @@
-const base = require('../chrome/content/gscc/gscc.js');
+const base = require('../src/chrome/content/gscc.js');
 const hasCitation = require('./__data__/gsResponseHasCitation.js');
 const noCitation = require('./__data__/gsResponseNoCitation.js');
 const hasRecaptcha = require('./__data__/gsResponseHasRecaptcha');

@@ -22,6 +22,7 @@ global.Zotero = {
   ScholarCitations: () => {
     return {};
   },
+  getMainWindow: () => {},
   viewerOpen: false,
 };
 
