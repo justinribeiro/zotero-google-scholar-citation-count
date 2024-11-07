@@ -74,31 +74,6 @@ $__gscc.debugger = {
   },
 };
 
-$__gscc.localization = {
-  /**
-   * All the strings below get replaced by the localization process; they're
-   * there as description fallbacks only
-   */
-  string: {
-    recaptchaAlert:
-      'Please enter the Captcha on the page that will now open and then re-try updating the citations, or wait a while to get unblocked by Google if the Captcha is not present.',
-    citedByPrefix: 'Cited by ',
-    lackPermissions: 'You lack the permission to make edit to this library.',
-    unSupportedGroupCollection:
-      'You lack the permission to make edit to this library.',
-    unSupportedEntryType: 'Updating a Group is not yet implemented.',
-  },
-  translate: function () {
-    const stringBundle = document.getElementById('gscc-bundle');
-
-    if (stringBundle !== null) {
-      Object.keys(this.string).map((key) => {
-        this.string[key] = stringBundle.getString(key);
-      });
-    }
-  },
-};
-
 $__gscc.util = {
   /**
    * A method to sleep via setTimeout/promise
@@ -183,7 +158,10 @@ $__gscc.util = {
   openRecaptchaWindow: async function (targetUrl) {
     const window = Zotero.getMainWindow();
 
-    window.alert($__gscc.localization.string.recaptchaAlert);
+    const alertMessage = await window.document.l10n.formatValue(
+      'gscc-recapatcha-alert',
+    );
+    window.alert(alertMessage);
 
     let intervalWindowCloseState;
 
@@ -231,6 +209,16 @@ $__gscc.app = {
    * @private
    */
   __apiEndpoint: 'https://scholar.google.com/',
+  /**
+   * Default String search in Google Scholar,
+   * will override based on locale
+   * @private
+   */
+  __citedByPrefix: 'Cited by',
+  /**
+   * My own marker for init; not for general use
+   * @private
+   */
   __initialized: false,
   /**
    * Fallbacks for Zotero preferences
@@ -263,26 +251,7 @@ $__gscc.app = {
 
   main: async function () {
     // Global properties are included automatically in Zotero 7
-    $__gscc.debugger.info(
-      `extensions.zotero.gscc.useRandomWait: ${Zotero.Prefs.get(
-        'extensions.zotero.gscc.useRandomWait',
-        true,
-      )}`,
-    );
-
-    $__gscc.debugger.info(
-      `extensions.zotero.gscc.randomWaitMinMs: ${Zotero.Prefs.get(
-        'extensions.zotero.gscc.randomWaitMinMs',
-        $__gscc.app.__preferenceDefaults.randomWaitMinMs,
-      )}`,
-    );
-
-    $__gscc.debugger.info(
-      `extensions.zotero.gscc.randomWaitMaxMs: ${Zotero.Prefs.get(
-        'extensions.zotero.gscc.randomWaitMaxMs',
-        $__gscc.app.__preferenceDefaults.randomWaitMaxMs,
-      )}`,
-    );
+    // no need for default spin-up
   },
 
   getActivePane: function () {
@@ -292,6 +261,7 @@ $__gscc.app = {
   addToWindow: async function (window) {
     const doc = window.document;
 
+    // Fluent for localization
     window.MozXULElement.insertFTLIfNeeded('gscc.ftl');
 
     const XUL_NS =
@@ -304,25 +274,29 @@ $__gscc.app = {
       'menuitem-iconic',
       'zotero-menuitem-retrieve-metadata',
     );
-    menuitem.setAttribute('label', 'Update Google Scholar citation count');
+    menuitem.setAttribute('data-l10n-id', 'gscc-menuitem');
     menuitem.addEventListener('command', async () => {
       await $__gscc.app.updateItemMenuEntries();
     });
     doc.getElementById('zotero-itemmenu').appendChild(menuitem);
 
-    $__gscc.debugger.info(`${doc}`);
-    $__gscc.debugger.info(`Option Added to Right Click Menu`);
+    $__gscc.debugger.info(`Menu Item Option Added to Right Click Menu`);
 
+    const columnLabel = await doc.l10n.formatValue('gscc-column-name');
     $__gscc.app.registeredDataKey =
       await Zotero.ItemTreeManager.registerColumns({
         dataKey: 'gsccCount',
-        label: 'Citation Count',
+        label: columnLabel,
         pluginID: 'justin@justinribeiro.com',
         dataProvider: (item, dataKey) => {
           const data = item.getField('extra');
           return this.setFieldFromExtra(data);
         },
       });
+
+    const citeByRef = await doc.l10n.formatValue('gscc-citedByPrefix');
+    $__gscc.app.__citedByPrefix = citeByRef;
+    $__gscc.debugger.info(`GS Cited Ref set: ${$__gscc.app.__citedByPrefix}`);
   },
 
   /**
@@ -389,8 +363,12 @@ $__gscc.app = {
     const zoteroPane = $__gscc.app.getActivePane();
     const window = Zotero.getMainWindow();
 
+    const permissionAlertString = await window.document.l10n.formatValue(
+      'gscc-lackPermissions',
+    );
+
     if (!zoteroPane.canEditLibrary()) {
-      window.alert($__gscc.localization.string.lackPermissions);
+      window.alert(permissionAlertString);
       return;
     }
 
@@ -406,7 +384,10 @@ $__gscc.app = {
       return;
     }
 
-    window.alert($__gscc.localization.string.unSupportedEntryType);
+    const unSupportedEntryTypeString = await window.document.l10n.formatValue(
+      'gscc-unSupportedEntryType',
+    );
+    window.alert(unSupportedEntryTypeString);
     return;
   },
   updateItemMenuEntries: async function () {
@@ -414,14 +395,19 @@ $__gscc.app = {
     const window = Zotero.getMainWindow();
 
     if (!zoteroPane.canEditLibrary()) {
-      window.alert($__gscc.localization.string.lackPermissions);
+      const permissionAlertString = await window.document.l10n.formatValue(
+        'gscc-lackPermissions',
+      );
+      window.alert(permissionAlertString);
       return;
     }
     await this.processItems(zoteroPane.getSelectedItems());
   },
-  updateGroup: function () {
+  updateGroup: async function () {
     const window = Zotero.getMainWindow();
-    window.alert($__gscc.localization.string.unSupportedGroupCollection);
+    const unSupportedGroupCollectionString =
+      await window.document.l10n.formatValue('gscc-unSupportedGroupCollection');
+    window.alert(unSupportedGroupCollectionString);
     return;
   },
   updateCollection: async function (collection) {
@@ -709,7 +695,7 @@ $__gscc.app = {
    * @returns number
    */
   getCiteCount: function (responseText) {
-    const citePrefix = `>${$__gscc.localization.string.citedByPrefix}`;
+    const citePrefix = `>${$__gscc.app.__citedByPrefix}`;
     const citePrefixLen = citePrefix.length;
     const citeCountStart = responseText.indexOf(citePrefix);
 

@@ -1,0 +1,12 @@
+gscc-menuitem =
+  .label = Mettre à jour le nombre de citations Google Scholar
+gscc-column-name = Nombre de citations
+gscc-update-all =
+  .label = Mettre à jour tous les nombres de citations Google Scholar.
+gscc-recapatcha-alert = Veuillez entrer le Captcha sur la page qui va s'ouvrir, puis réessayez de mettre à jour les citations, ou attendez un moment pour être débloqué par Google si le Captcha n'est pas présent.
+gscc-citedByPrefix =
+  .label = Cité par
+gscc-lackPermissions = Vous n'avez pas la permission de modifier cette bibliothèque.
+gscc-unSupportedEntryType = La mise à jour des citations pour ce type d'entrée n'est pas prise en charge.
+gscc-unSupportedGroupCollection =
+  .label = La mise à jour d'un groupe n'est pas encore implémentée.

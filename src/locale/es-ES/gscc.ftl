@@ -1,0 +1,12 @@
+gscc-menuitem =
+  .label = Actualizar el recuento de citas de Google Scholar
+gscc-column-name = Recuento de citas
+gscc-update-all =
+  .label = Actualizar todos los recuentos de citas de Google Scholar.
+gscc-recapatcha-alert = Por favor, introduzca el Captcha en la página que se abrirá ahora y luego intente actualizar las citas nuevamente, o espere un momento para que Google desbloquee si el Captcha no está presente.
+gscc-citedByPrefix =
+  .label = Citado por
+gscc-lackPermissions = No tiene permiso para editar esta biblioteca.
+gscc-unSupportedEntryType = No se admite la actualización de citas para este tipo de entrada.
+gscc-unSupportedGroupCollection =
+  .label = La actualización de un grupo aún no está implementada.
