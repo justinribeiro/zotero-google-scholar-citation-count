@@ -11,7 +11,14 @@ function install() {
 async function startup({ id, version, rootURI }) {
   log('Starting GSCC 4.0.0');
 
-  Services.scriptloader.loadSubScript(`${rootURI}chrome/content/gscc.js`);
+  const filePath = `${rootURI}/gscc.js`;
+  Services.scriptloader.loadSubScript(filePath);
+
+  Zotero.PreferencePanes.register({
+    pluginID: 'justin@justinribeiro.com',
+    src: `${rootURI}prefs.xhtml`,
+  });
+
   $__gscc.app.init({ id, version, rootURI });
   $__gscc.app.addToAllWindows();
   await $__gscc.app.main();

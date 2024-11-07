@@ -99,115 +99,6 @@ $__gscc.localization = {
   },
 };
 
-$__gscc.preferences = {
-  /**
-   * Prefs lookup keys for use with get()
-   */
-  keys: {
-    USE_RANDOM_WAIT: 'useRandomWait',
-    RANDOM_WAIT_MIN_MS: 'randomWaitMinMs',
-    RANDOM_WAIT_MAX_MS: 'randomWaitMaxMs',
-  },
-  /**
-   * Setup some baseline prefs
-   * @private
-   */
-  __preferences: {
-    useRandomWait: true,
-    randomWaitMinMs: 1000,
-    randomWaitMaxMs: 5000,
-  },
-  /**
-   * Defines the Preference Service lookup branch
-   * @private
-   */
-  __preferenceBranch: 'extensions.gscc.',
-  /**
-   * Set up the default values for the preferences branch store
-   */
-  install: function () {
-    Object.keys(this.__preferences).map((key) => {
-      this.set(key, this.__preferences[key]);
-    });
-  },
-  /**
-   * Get the handle from the Services.prefs for GSCC branch
-   * @returns PrefsBranch
-   */
-  getBranch: function () {
-    return Services.prefs.getBranch(this.__preferenceBranch);
-  },
-  /**
-   * Get a value for the preference from GSCC branch
-   * @param {string} pref
-   * @param {boolean} throwError
-   * @returns string|number|boolean
-   */
-  get: function (pref, throwError = false) {
-    const preferenceBranch = this.getBranch();
-    let preferenceValue;
-    try {
-      switch (preferenceBranch.getPrefType(pref)) {
-        case preferenceBranch.PREF_BOOL:
-          preferenceValue = preferenceBranch.getBoolPref(pref);
-          break;
-        case preferenceBranch.PREF_STRING:
-          preferenceValue = preferenceBranch.getCharPref(pref);
-          break;
-        case preferenceBranch.PREF_INT:
-          preferenceValue = preferenceBranch.getIntPref(pref);
-          break;
-      }
-    } catch (e) {
-      if (throwError) {
-        throw new Error('[GSCC]: no pref found');
-      } else {
-        preferenceValue = this.__preferences[pref].valueOf();
-      }
-    }
-    return preferenceValue;
-  },
-  /**
-   * Set a preference for GSCC branch
-   * @param {string} pref
-   * @param {string|number|boolean} value
-   * @returns boolean
-   */
-  set: function (pref, value) {
-    const preferenceBranch = this.getBranch();
-
-    // if there is already a preference, chance are we don't want to overwrite
-    // since we set this up ideally once
-    try {
-      this.get(pref, true);
-    } catch (e) {
-      switch (typeof value) {
-        case 'boolean':
-          return preferenceBranch.setBoolPref(pref, value);
-        case 'string':
-          return preferenceBranch.setCharPref(pref, value);
-        case 'number':
-          return preferenceBranch.setIntPref(pref, value);
-        default:
-          return false;
-      }
-    }
-    return true;
-  },
-  /**
-   * Clear a preference for GSCC branch
-   * @param {string} pref
-   */
-  clear: function (pref) {
-    const preferenceBranch = this.getBranch();
-    try {
-      preferenceBranch.clearUserPref(pref);
-    } catch (e) {
-      throw new Error(`[GSCC]: Invalid preference ${pref}`);
-    }
-  },
-};
-
 $__gscc.util = {
   /**
    * A method to sleep via setTimeout/promise
@@ -309,7 +200,7 @@ $__gscc.util = {
     const recaptchaWindow = Zotero.openInViewer(targetUrl);
 
     return new Promise((resolve) =>
-      checkWindowClosed(recaptchaWindow, resolve)
+      checkWindowClosed(recaptchaWindow, resolve),
     );
   },
 };
@@ -342,6 +233,19 @@ $__gscc.app = {
   __apiEndpoint: 'https://scholar.google.com/',
   __initialized: false,
   /**
+   * Fallbacks for Zotero preferences
+   * @private
+   */
+  __preferenceDefaults: {
+    useRandomWait: true,
+    randomWaitMinMs: 1000,
+    randomWaitMaxMs: 5000,
+    useFuzzyMatch: false,
+    useSearchTitleFuzzyMatch: false,
+    useSearchAuthorsMatch: true,
+    useDateRangeMatch: false,
+  },
+  /**
    * Initialize our world.
    * @return {void}
    */
@@ -360,10 +264,24 @@ $__gscc.app = {
   main: async function () {
     // Global properties are included automatically in Zotero 7
     $__gscc.debugger.info(
-      `extensions.gscc.useRandomWait: ${Zotero.Prefs.get(
-        'extensions.gscc.useRandomWait',
-        true
-      )}`
+      `extensions.zotero.gscc.useRandomWait: ${Zotero.Prefs.get(
+        'extensions.zotero.gscc.useRandomWait',
+        true,
+      )}`,
+    );
+
+    $__gscc.debugger.info(
+      `extensions.zotero.gscc.randomWaitMinMs: ${Zotero.Prefs.get(
+        'extensions.zotero.gscc.randomWaitMinMs',
+        $__gscc.app.__preferenceDefaults.randomWaitMinMs,
+      )}`,
+    );
+
+    $__gscc.debugger.info(
+      `extensions.zotero.gscc.randomWaitMaxMs: ${Zotero.Prefs.get(
+        'extensions.zotero.gscc.randomWaitMaxMs',
+        $__gscc.app.__preferenceDefaults.randomWaitMaxMs,
+      )}`,
     );
   },
 
@@ -384,7 +302,7 @@ $__gscc.app = {
     menuitem.id = 'gscc-get-count';
     menuitem.classList.add(
       'menuitem-iconic',
-      'zotero-menuitem-retrieve-metadata'
+      'zotero-menuitem-retrieve-metadata',
     );
     menuitem.setAttribute('label', 'Update Google Scholar citation count');
     menuitem.addEventListener('command', async () => {
@@ -402,7 +320,7 @@ $__gscc.app = {
         pluginID: 'justin@justinribeiro.com',
         dataProvider: (item, dataKey) => {
           const data = item.getField('extra');
-          return setFieldFromExtra(data);
+          return this.setFieldFromExtra(data);
         },
       });
   },
@@ -417,7 +335,7 @@ $__gscc.app = {
       try {
         const regex = new RegExp(
           String.raw`${this.__extraEntryPrefix}:(\s*\d+)`,
-          'g'
+          'g',
         );
         // meh
         const match = extraString.match(regex)[0];
@@ -433,14 +351,14 @@ $__gscc.app = {
   removeFromWindow: async function (win) {
     const doc = win.document;
     await Zotero.ItemTreeManager.unregisterColumns(
-      $__gscc.app.registeredDataKey
+      $__gscc.app.registeredDataKey,
     );
     // failsafe
     try {
       doc.querySelector('#gscc-get-count').remove();
     } catch (error) {
       $__gscc.debugger.info(
-        'Unable to remove custom column; already cleaned up.'
+        'Unable to remove custom column; already cleaned up.',
       );
     }
   },
@@ -514,23 +432,31 @@ $__gscc.app = {
     }
   },
   /**
-   * fatch and process data and update the selected entries from Zotero
+   * fetch and process data and update the selected entries from Zotero
    * @param {ZoteroGenericItem[]} items
    */
   processItems: async function (items) {
-    const useQueue = $__gscc.preferences.get(
-      $__gscc.preferences.keys.USE_RANDOM_WAIT
+    const useQueue = Zotero.Prefs.get(
+      'extensions.zotero.gscc.useRandomWait',
+      $__gscc.app.__preferenceDefaults.useRandomWait,
     );
+
     let queueMinWaitMs;
     let queueMaxWaitMs;
 
+    $__gscc.debugger.info(`Use Queue: ${useQueue}`);
+
     if (useQueue) {
-      queueMinWaitMs = $__gscc.preferences.get(
-        $__gscc.preferences.keys.RANDOM_WAIT_MIN_MS
+      queueMinWaitMs = Zotero.Prefs.get(
+        'extensions.zotero.gscc.randomWaitMinMs',
+        $__gscc.app.__preferenceDefaults.randomWaitMinMs,
       );
-      queueMaxWaitMs = $__gscc.preferences.get(
-        $__gscc.preferences.keys.RANDOM_WAIT_MAX_MS
+      queueMaxWaitMs = Zotero.Prefs.get(
+        'extensions.zotero.gscc.randomWaitMaxMs',
+        $__gscc.app.__preferenceDefaults.randomWaitMaxMs,
       );
+
+      $__gscc.debugger.info(`Min: ${queueMinWaitMs} Max: ${queueMaxWaitMs}`);
     }
 
     /**
@@ -541,8 +467,8 @@ $__gscc.app = {
       if (!this.hasRequiredFields(item)) {
         $__gscc.debugger.warn(
           `skipping item '${item.getField(
-            'title'
-          )}': empty title or missing creator information'`
+            'title',
+          )}': empty title or missing creator information'`,
         );
       } else {
         // check the prefs in case user override, don't use it on the first item
@@ -550,7 +476,7 @@ $__gscc.app = {
         if (useQueue && index > 0) {
           const queueTime = $__gscc.util.randomInteger(
             queueMinWaitMs,
-            queueMaxWaitMs
+            queueMaxWaitMs,
           );
 
           $__gscc.debugger.info(`queued for ${queueTime} ms later.`);
@@ -563,7 +489,7 @@ $__gscc.app = {
           response.responseText,
           1000,
           response.responseURL,
-          item
+          item,
         );
       }
     }
@@ -581,17 +507,17 @@ $__gscc.app = {
     if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
       revisedExtraField = fieldExtra.replace(
         new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'),
-        buildNewCiteCount
+        buildNewCiteCount,
       );
       $__gscc.debugger.info(
-        `existing cite count in extra field, updating to ${buildNewCiteCount} ${revisedExtraField}`
+        `existing cite count in extra field, updating to ${buildNewCiteCount} ${revisedExtraField}`,
       );
     } else {
       $__gscc.debugger.info(`no existing cite count in extra field, adding`);
       revisedExtraField =
         `${buildNewCiteCount}${this.__extraEntrySeparator}`.concat(
           '',
-          fieldExtra
+          fieldExtra,
         );
     }
     item.setField('extra', revisedExtraField);
@@ -601,7 +527,7 @@ $__gscc.app = {
       item.saveTx();
     } catch (e) {
       $__gscc.debugger.error(
-        `could not update extra field with citation count: ${e}`
+        `could not update extra field with citation count: ${e}`,
       );
     }
   },
@@ -628,26 +554,26 @@ $__gscc.app = {
     requestData,
     requestRetry,
     targetUrl,
-    item
+    item,
   ) {
-    $__gscc.debugger.info(requestStatus, requestData);
+    $__gscc.debugger.info(`Request Status: ${requestStatus}`);
     let retryResponse;
     switch (requestStatus) {
       case 200:
         if (!$__gscc.util.hasRecaptcha(requestData)) {
           if ($__gscc.util.hasCitationResults(requestData)) {
             $__gscc.debugger.info(
-              `Google Scholar returned search result, parsing cite count`
+              `Google Scholar returned search result, parsing cite count`,
             );
             this.updateItem(item, this.getCiteCount(requestData));
           } else {
             $__gscc.debugger.warn(
-              `Google Scholar found no search result for requested item: ${targetUrl}`
+              `Google Scholar found no search result for requested item: ${targetUrl}`,
             );
           }
         } else {
           $__gscc.debugger.warn(
-            'Google Scholar asking for recaptcha, opening window.'
+            'Google Scholar asking for recaptcha, opening window.',
           );
           await $__gscc.util.openRecaptchaWindow(targetUrl);
           retryResponse = await this.retrieveCitationData(item);
@@ -656,13 +582,13 @@ $__gscc.app = {
             retryResponse.responseText,
             1000,
             retryResponse.responseURL,
-            item
+            item,
           );
         }
         break;
       case 403:
         $__gscc.debugger.warn(
-          'Google Scholar thinks we are sus, opening window.'
+          'Google Scholar thinks we are sus, opening window.',
         );
         await $__gscc.util.openRecaptchaWindow(targetUrl);
         retryResponse = await this.retrieveCitationData(item);
@@ -671,18 +597,18 @@ $__gscc.app = {
           retryResponse.responseText,
           1000,
           retryResponse.responseURL,
-          item
+          item,
         );
         break;
       case 404:
         $__gscc.debugger.error(
-          `Google Scholar could not find the requested page.`
+          `Google Scholar could not find the requested page.`,
         );
         break;
       case 429:
         if (requestRetry) {
           $__gscc.debugger.warn(
-            `Google Scholar asks for retry after ${requestRetry} seconds, re-queuing request.`
+            `Google Scholar asks for retry after ${requestRetry} seconds, re-queuing request.`,
           );
           await $__gscc.util.sleep(requestRetry * 1000);
           await this.retrieveCitationData(item);
@@ -690,7 +616,7 @@ $__gscc.app = {
         break;
       default:
         $__gscc.debugger.error(
-          `Google Scholar fetch failed for item: ${targetUrl}`
+          `Google Scholar fetch failed for item: ${targetUrl}`,
         );
         break;
     }
@@ -701,26 +627,62 @@ $__gscc.app = {
    * @returns string
    */
   generateItemUrl: function (item) {
-    let paramAuthors = '';
+    const useSearchTitleFuzzyMatch = Zotero.Prefs.get(
+      'extensions.zotero.gscc.useSearchTitleFuzzyMatch',
+      $__gscc.app.__preferenceDefaults.useSearchTitleFuzzyMatch,
+    );
 
-    /**
-     * @type array
-     */
-    const creators = item.getCreators() || [];
+    const useSearchAuthorsMatch = Zotero.Prefs.get(
+      'extensions.zotero.gscc.useSearchAuthorsMatch',
+      $__gscc.app.__preferenceDefaults.useSearchAuthorsMatch,
+    );
 
-    if (creators.length > 0) {
-      paramAuthors = `&as_sauthors=${creators
-        .map((author) => author.lastName)
-        .slice(0, 5)
-        .join('+')}`;
+    const useDateRangeMatch = Zotero.Prefs.get(
+      'extensions.zotero.gscc.useDateRangeMatch',
+      $__gscc.app.__preferenceDefaults.useDateRangeMatch,
+    );
+
+    let titleSearchString;
+    if (useSearchTitleFuzzyMatch) {
+      $__gscc.debugger.info(
+        `Search Param: Using Fuzzy Title Match per Preferences`,
+      );
+      titleSearchString = `${item.getField('title')}`;
+    } else {
+      // this is a dead match; kinda risky for hand-entered data but match is
+      // good on Zotero grabs
+      titleSearchString = `"${item.getField('title')}"`;
     }
 
-    // Dead match; switch out in v4.1 for improved hits
-    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q="${item.getField(
-      'title'
-    )}"&as_epq=&as_occt=title&num=1${paramAuthors}`;
+    let paramAuthors = '';
+    if (useSearchAuthorsMatch) {
+      $__gscc.debugger.info(
+        `Search Param: Adding Authors Match per Preferences`,
+      );
+      /**
+       * @type array
+       */
+      const creators = item.getCreators() || [];
 
-    $__gscc.debugger.info(`Endpoint test: ${targetUrl}`);
+      if (creators.length > 0) {
+        paramAuthors = `&as_sauthors=${creators
+          .map((author) => author.lastName)
+          .slice(0, 5)
+          .join('+')}`;
+      }
+    }
+
+    let paramYearRange = '';
+    if (useDateRangeMatch) {
+      $__gscc.debugger.info(`Search Param: Adding Date Range per Preferences`);
+      const year = parseInt(item.getField('year'));
+      if (year) {
+        paramYearRange = `&as_ylo=${year - 2}&as_yhi=${year + 2}`;
+      }
+    }
+
+    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q=${titleSearchString}&as_epq=&as_occt=title&num=1${paramAuthors}${paramYearRange}`;
+    $__gscc.debugger.info(`Search Endpoint Ready: ${targetUrl}`);
 
     return encodeURI(targetUrl);
   },
@@ -736,7 +698,7 @@ $__gscc.app = {
     } else {
       data = $__gscc.util.padCountWithZeros(
         citeCount.toString(),
-        this.__citeCountStrLength
+        this.__citeCountStrLength,
       );
     }
     return `${this.__extraEntryPrefix}: ${data}`;

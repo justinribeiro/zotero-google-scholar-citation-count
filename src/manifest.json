@@ -6,8 +6,8 @@
   "homepage_url": "https://github.com/justinribeiro/zotero-google-scholar-citation-count",
   "author": "Justin Ribeiro",
   "icons": {
-    "48": "chrome/content/icons/favicon.png",
-    "96": "chrome/content/icons/faviconX2.png"
+    "48": "icons/favicon.png",
+    "96": "icons/faviconX2.png"
   },
   "applications": {
     "zotero": {
