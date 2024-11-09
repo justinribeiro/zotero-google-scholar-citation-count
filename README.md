@@ -11,12 +11,16 @@
 
 ## Download Latest Version
 
-Zotero 7 - [![v4.0.1](https://img.shields.io/badge/Download-v4.0.1-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.0.0/zotero-google-scholar-citation-count-4.0.1.xpi)
+Zotero 7 - [![v4.1.0](https://img.shields.io/badge/Download-v4.1.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.1.0/zotero-google-scholar-citation-count-4.1.0.xpi)
 
 Zotero 6 - [![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
 
-## New in v4.0.0
-This release is specifically adding the initial support for the upcoming Zotero 7. The most significant feature addition is that there is now a custom data column available that allows seeing Citation Count. See [the sample video](https://www.youtube.com/watch?v=wgW74lL_tgI) for usage. If you find issues in Zotero 7 beta, please let me know so we can squash some bugs!
+## What's New
+_v4.1.0_ - New translations, new preferences panel, and new search options! Matching is hard (see the Citation Counts note), but we can make it better. The preferences panel now let's your tighten or loosen some of the search parameters to Google Scholar for you use case. This is the first pass, more options to come!
+
+![New Preferences Panel for Citation Count](https://github.com/user-attachments/assets/4f640d7a-4b3b-42fe-b5ac-bf51dcd7f68d)
+
+_v4.0.0_ - This release is specifically adding the initial support for the upcoming Zotero 7. The most significant feature addition is that there is now a custom data column available that allows seeing Citation Count. See [the sample video](https://www.youtube.com/watch?v=wgW74lL_tgI) for usage. If you find issues in Zotero 7 beta, please let me know so we can squash some bugs!
 
 ## A Note About Citation Counts
 

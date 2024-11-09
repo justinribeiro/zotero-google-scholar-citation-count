@@ -1,6 +1,6 @@
 {
   "name": "zotero-google-scholar-citation-count",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "bugs": {
     "url": "https://github.com/justinribeiro/zotero-google-scholar-citation-count/issues"
   },
@@ -57,7 +57,6 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "mocha": "^10.8.2",
-    "mock-xmlhttprequest": "^8.4.0",
     "nyc": "^17.1.0",
     "prettier": "3.3.3",
     "vitest": "^2.1.4"
