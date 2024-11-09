@@ -293,10 +293,6 @@ $__gscc.app = {
           return this.setFieldFromExtra(data);
         },
       });
-
-    const citeByRef = await doc.l10n.formatValue('gscc-citedByPrefix');
-    $__gscc.app.__citedByPrefix = citeByRef;
-    $__gscc.debugger.info(`GS Cited Ref set: ${$__gscc.app.__citedByPrefix}`);
   },
 
   /**
