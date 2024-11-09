@@ -1,3 +1,5 @@
+jest.setTimeout(60000);
+
 global.Zotero = {
   Debug: {
     // eslint-disable-next-line no-unused-vars
@@ -22,9 +24,45 @@ global.Zotero = {
   ScholarCitations: () => {
     return {};
   },
-  getMainWindow: () => {},
+  getMainWindow: () => {
+    return global.window;
+  },
   viewerOpen: false,
+  Prefs: {
+    get: (a, b) => {
+      return b;
+    },
+  },
+  ItemTreeManager: {
+    registerColumns: () => {},
+    unregisterColumns: () => {},
+  },
 };
+
+global.document.l10n = {
+  formatValue: (a) => {
+    return a;
+  },
+};
+
+global.window.MozXULElement = {
+  insertFTLIfNeeded: () => {},
+};
+
+// cheeky, but we're not testing Google Scholar here
+global.XMLHttpRequest = jest.fn().mockImplementation(() => {
+  return {
+    readyState: 4,
+    status: 200,
+    responseText: JSON.stringify({ message: 'Justin mocking response' }),
+    open: jest.fn(),
+    send: jest.fn().mockImplementation(function () {
+      this.onreadystatechange();
+    }),
+    setRequestHeader: jest.fn(),
+    onreadystatechange: jest.fn(),
+  };
+});
 
 global.gBrowser = {
   loadOneTab: (targetUrl = '', obj = {}) => {

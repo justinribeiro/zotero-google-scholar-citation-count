@@ -32,7 +32,7 @@ export default {
 
   setupFiles: ['core-js', './__tests__/__setup__/setupJest.js'],
 
-  testEnvironment: 'jsdom',
+  testEnvironment: './__tests__/__setup__/env.js',
 
   testMatch: ['**/__tests__/**/*?(*.)+(spec|test).[tj]s?(x)'],
 

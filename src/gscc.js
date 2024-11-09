@@ -166,7 +166,7 @@ $__gscc.util = {
     let intervalWindowCloseState;
 
     const checkWindowClosed = (modalWindowHandle, resolve) => {
-      if (modalWindowHandle.closed) {
+      if (modalWindowHandle?.closed) {
         $__gscc.debugger.info('recaptcha window closed');
         clearInterval(intervalWindowCloseState);
         resolve();
@@ -327,14 +327,12 @@ $__gscc.app = {
     await Zotero.ItemTreeManager.unregisterColumns(
       $__gscc.app.registeredDataKey,
     );
-    // failsafe
+
     try {
+      // failsafe
       doc.querySelector('#gscc-get-count').remove();
-    } catch (error) {
-      $__gscc.debugger.info(
-        'Unable to remove custom column; already cleaned up.',
-      );
-    }
+      $__gscc.debugger.info('Running failsafe remove custom column.');
+    } catch {}
   },
   addToAllWindows: function () {
     var windows = Zotero.getMainWindows();

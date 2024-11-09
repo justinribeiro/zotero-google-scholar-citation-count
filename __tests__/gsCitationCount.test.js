@@ -1,4 +1,4 @@
-const base = require('../src/chrome/content/gscc.js');
+const base = require('../src/gscc.js');
 const hasCitation = require('./__data__/gsResponseHasCitation.js');
 const hasCitation2023Version = require('./__data__/gsResponseHasCitationJuly2023GSUpdate.js');
 const hasCitation2023VersionAltReturn = require('./__data__/gsResponseHasCitationJuly2023GSUpdateAltSearchCase.js');
@@ -9,8 +9,10 @@ const singleItemWithCount = require('./__data__/zoteroItemsListSingleItemWithCou
 const singleItemNoCount = require('./__data__/zoteroItemsListSingleItemWithNoCount.js');
 const singleItemNoTitle = require('./__data__/zoteroItemsListSingleItemWithNoTitle.js');
 const singleItemNoCreators = require('./__data__/zoteroItemsListSingleItemWithNoCreators.js');
+const itemsList = require('./__data__/zoteroItemsList.js');
 
 window.alert = jest.fn();
+jest.useRealTimers();
 
 describe('Verify $__gscc.app sanity', () => {
   beforeEach(() => {
@@ -145,24 +147,24 @@ describe('Verify $__gscc.app sanity', () => {
     expect(warn).toHaveBeenCalled();
   });
 
-  // it('processCitationResponse() 200 should open window on recaptcha', () => {
-  //   const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
-  //   const openWindow = jest.spyOn(base.$__gscc.util, 'openRecaptchaWindow');
-  //   const item = { ...singleItemNoCount.data };
-  //   const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
-  //   base.$__gscc.app.processCitationResponse(
-  //     200,
-  //     hasRecaptcha.data,
-  //     null,
-  //     targetUrl,
-  //     item,
-  //     (item, citeCount) => {
-  //       base.$__gscc.app.updateItem(item, citeCount);
-  //     },
-  //   );
-  //   expect(warn).toHaveBeenCalled();
-  //   expect(openWindow).toHaveBeenCalled();
-  // });
+  it('processCitationResponse() 200 should open window on recaptcha', () => {
+    const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
+    const openWindow = jest.spyOn(base.$__gscc.util, 'openRecaptchaWindow');
+    const item = { ...singleItemNoCount.data };
+    const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+    base.$__gscc.app.processCitationResponse(
+      200,
+      hasRecaptcha.data,
+      null,
+      targetUrl,
+      item,
+      (item, citeCount) => {
+        base.$__gscc.app.updateItem(item, citeCount);
+      },
+    );
+    expect(warn).toHaveBeenCalled();
+    expect(openWindow).toHaveBeenCalled();
+  });
 
   it('processCitationResponse() 404 should console error', () => {
     const warn = jest.spyOn(base.$__gscc.debugger, 'error');
@@ -247,5 +249,41 @@ describe('Verify $__gscc.app sanity', () => {
       'ds323 GSCC:00001000',
     );
     expect(subGSCCString).toBe(0);
+  });
+
+  it('addToWindow sets up world', async () => {
+    const info = jest.spyOn(base.$__gscc.debugger, 'info');
+
+    // there's no menu in JSDOM, so we make one temp wise
+    const ele = global.document.createElement('div');
+    ele.id = 'zotero-itemmenu';
+    global.document.body.appendChild(ele);
+
+    await base.$__gscc.app.addToWindow(global.window);
+
+    expect(base.$__gscc.app.__citedByPrefix).toBe('gscc-citedByPrefix');
+    expect(info).toHaveBeenCalledTimes(2);
+  });
+
+  it('removeFromWindow runs failsafe in case unregister fails', async () => {
+    const info = jest.spyOn(base.$__gscc.debugger, 'info');
+
+    // there's no menu in JSDOM, so we make one temp wise
+    const ele = global.document.createElement('div');
+    ele.id = 'gscc-get-count';
+    global.document.body.appendChild(ele);
+
+    await base.$__gscc.app.removeFromWindow(global.window);
+
+    expect(info).toHaveBeenCalledTimes(1);
+  });
+
+  it('processItems burns correctly', async () => {
+    const info = jest.spyOn(base.$__gscc.debugger, 'info');
+    jest.spyOn($__gscc.app, 'retrieveCitationData');
+    jest.spyOn($__gscc.app, 'processCitationResponse');
+    await base.$__gscc.app.processItems(itemsList);
+
+    expect(info).toHaveBeenCalledTimes(6);
   });
 });

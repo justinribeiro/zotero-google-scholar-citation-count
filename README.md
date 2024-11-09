@@ -2,16 +2,16 @@
 
 > Add-on that fetches numbers of citations of your Zotero collection items from Google Scholar, adding the citation count to the extra column for reference and sorting.
 
-[![Zotero +v5.0](https://img.shields.io/badge/Zotero-%3E%3D%205.x-brightgreen)](https://www.zotero.org/)
+[![Zotero +v7.0](https://img.shields.io/badge/Zotero-%3E%3D%205.x-brightgreen)](https://www.zotero.org/)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
-![Test Coverage - Statements](https://img.shields.io/badge/statements-66.66%25-red.svg)
-![Test Coverage - Branches](https://img.shields.io/badge/branches-67.27%25-red.svg)
-![Test Coverage - Functions](https://img.shields.io/badge/functions-58.62%25-red.svg)
-![Test Coverage - Lines](https://img.shields.io/badge/lines-68.25%25-red.svg)
+![Test Coverage - Statements](https://img.shields.io/badge/statements-66.36%25-red.svg)
+![Test Coverage - Branches](https://img.shields.io/badge/branches-59.45%25-red.svg)
+![Test Coverage - Functions](https://img.shields.io/badge/functions-69.04%25-red.svg)
+![Test Coverage - Lines](https://img.shields.io/badge/lines-67.44%25-red.svg)
 
 ## Download Latest Version
 
-Zotero 7 Beta - [![v4.0.1](https://img.shields.io/badge/Download-v4.0.1-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.0.0/zotero-google-scholar-citation-count-4.0.1.xpi)
+Zotero 7 - [![v4.0.1](https://img.shields.io/badge/Download-v4.0.1-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.0.0/zotero-google-scholar-citation-count-4.0.1.xpi)
 
 Zotero 6 - [![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
 
