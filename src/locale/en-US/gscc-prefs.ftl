@@ -2,6 +2,7 @@ preferences-gscc-enable-random-wait-timing = Set Google Scholar Request Random W
 preferences-gscc-random-wait-timing-explain = To attempt to not trigger the IP shadow ban that Google Scholar implements, GSCC uses a random interval per HTTP request. You can change the window by revising the milliseconds below.
 preferences-gscc-randomWaitMinMs = Minimum Request Wait (milliseconds)
 preferences-gscc-randomWaitMaxMs = Maximum Request Wait (milliseconds)
+preferences-gscc-processedCountLimit = Number of intermittent items
 preferences-gscc-search-params = Custom Search Parameters
 preferences-gscc-search-params-explain = Depending on the types of papers you import, sometimes finding matches can be hard. The latest v4.1 of GSCC allows changing the search behavior through flags to help when you need it. In most cases, you shouldn't need the flags below, but if you're having issues, different combinations in different global regions can sometimes help.
 preferences-gscc-useSearchTitleFuzzyMatch= Use Fuzzy Title Match

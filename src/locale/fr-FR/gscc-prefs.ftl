@@ -2,6 +2,7 @@ preferences-gscc-enable-random-wait-timing = Définir des intervalles d'attente 
 preferences-gscc-random-wait-timing-explain = Pour tenter de ne pas déclencher l'interdiction IP imposée par Google Scholar, GSCC utilise un intervalle aléatoire pour chaque requête HTTP. Vous pouvez modifier la fenêtre en révisant les millisecondes ci-dessous.
 preferences-gscc-randomWaitMinMs = Temps d'attente minimum (millisecondes)
 preferences-gscc-randomWaitMaxMs = Temps d'attente maximum (millisecondes)
+preferences-gscc-processedCountLimit = Nombre d'éléments intermittents
 preferences-gscc-search-params = Paramètres de recherche personnalisés
 preferences-gscc-search-params-explain = En fonction des types de documents que vous importez, il peut parfois être difficile de trouver des correspondances. La dernière version v4.1 de GSCC permet de modifier le comportement de recherche via des options pour vous aider en cas de besoin. Dans la plupart des cas, vous n'aurez pas besoin de ces options, mais si vous rencontrez des problèmes, différentes combinaisons dans différentes régions peuvent parfois aider.
 preferences-gscc-useSearchTitleFuzzyMatch = Utiliser la correspondance floue des titres
