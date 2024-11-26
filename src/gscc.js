@@ -228,6 +228,7 @@ $__gscc.app = {
     useRandomWait: true,
     randomWaitMinMs: 1000,
     randomWaitMaxMs: 5000,
+    processedCountLimit: 15,
     useFuzzyMatch: false,
     useSearchTitleFuzzyMatch: false,
     useSearchAuthorsMatch: true,
@@ -439,6 +440,15 @@ $__gscc.app = {
       $__gscc.debugger.info(`Min: ${queueMinWaitMs} Max: ${queueMaxWaitMs}`);
     }
 
+    // Get the processedCount limit from preferences
+    const processedCountLimit = Zotero.Prefs.get(
+      'extensions.zotero.gscc.processedCountLimit',
+      $__gscc.app.__preferenceDefaults.processedCountLimit,
+    );
+
+    // Add a counter to keep track of processed items
+    let processedCount = 0;
+
     /**
      * @param {number} index
      * @param {ZoteroGenericItem} item
@@ -471,6 +481,15 @@ $__gscc.app = {
           response.responseURL,
           item,
         );
+
+        // Increment the counter after processing an item
+        processedCount++;
+
+        // Pause for 30 minutes after processing the specified number of items
+        if (processedCount % processedCountLimit === 0) {
+          $__gscc.debugger.info(`Processed ${processedCount} items, pausing for 30 minutes.`);
+          await $__gscc.util.sleep(1800000); // 30 minutes in milliseconds
+        }
       }
     }
   },
@@ -623,17 +642,15 @@ $__gscc.app = {
     );
 
     let titleSearchString;
-    let rawTitle = item.getField('title').replace(/<sub>/g, '').replace(/<\/sub>/g, ''); 
-
     if (useSearchTitleFuzzyMatch) {
       $__gscc.debugger.info(
         `Search Param: Using Fuzzy Title Match per Preferences`,
       );
-      titleSearchString = `${rawTitle}`;
+      titleSearchString = `${item.getField('title')}`;
     } else {
       // this is a dead match; kinda risky for hand-entered data but match is
       // good on Zotero grabs
-      titleSearchString = `"${rawTitle}"`;
+      titleSearchString = `"${item.getField('title')}"`;
     }
 
     let paramAuthors = '';
