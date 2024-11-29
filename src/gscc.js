@@ -623,7 +623,7 @@ $__gscc.app = {
     );
 
     let titleSearchString;
-    let rawTitle = item.getField('title').replace(/<sub>/g, '').replace(/<\/sub>/g, ''); 
+    let rawTitle = item.getField('title').replace(/<[^>]+>/g, '');
 
     if (useSearchTitleFuzzyMatch) {
       $__gscc.debugger.info(
