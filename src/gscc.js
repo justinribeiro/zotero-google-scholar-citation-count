@@ -109,15 +109,6 @@ $__gscc.util = {
     });
   },
   /**
-   * Get a random number
-   * @param {number} min
-   * @param {number} max
-   * @return {number}
-   */
-  randomInteger: function (min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  },
-  /**
    * Checks to validate whether the source code has a recaptcha within it
    * @param {string} source source code to parse and search for recaptcha
    * include
@@ -205,16 +196,11 @@ $__gscc.app = {
    */
   __noData: 'NoCitationData',
   /**
-   * API endpoint for Google Scholar
-   * @private
-   */
-  __apiEndpoint: 'https://scholar.google.com/',
-  /**
    * Default String search in Google Scholar,
    * will override based on locale
    * @private
    */
-  __citedByPrefix: 'Cited by',
+  __citedByPrefix: '被引用次数：',
   /**
    * My own marker for init; not for general use
    * @private
@@ -225,13 +211,11 @@ $__gscc.app = {
    * @private
    */
   __preferenceDefaults: {
-    useRandomWait: true,
-    randomWaitMinMs: 1000,
-    randomWaitMaxMs: 5000,
     useFuzzyMatch: false,
     useSearchTitleFuzzyMatch: false,
     useSearchAuthorsMatch: true,
     useDateRangeMatch: false,
+    mirrorurl:'https://scholar.google.com/',
   },
   /**
    * Initialize our world.
@@ -242,11 +226,23 @@ $__gscc.app = {
     this.id = id;
     this.version = version;
     this.rootURI = rootURI;
-
+  
     // sanity
     $__gscc.app.__initialized = true;
-
+  
     $__gscc.debugger.info(`Init() Complete! ${this.rootURI}`);
+  
+    // Add event listener for new items
+    Zotero.Notifier.registerObserver($__gscc.app.notifierCallback, ['item']);
+  },
+  
+  notifierCallback: {
+    notify: async function(event, type, ids, extraData) {
+      if (event === 'add' && type === 'item') {
+        const newItems = await Zotero.Items.getAsync(ids);
+        await $__gscc.app.updateItemMenuEntries(newItems);
+      }
+    }
   },
 
   main: async function () {
@@ -287,6 +283,7 @@ $__gscc.app = {
       await Zotero.ItemTreeManager.registerColumns({
         dataKey: 'gsccCount',
         label: columnLabel,
+        flex:0.4,
         pluginID: 'justin@justinribeiro.com',
         dataProvider: (item, dataKey) => {
           const data = item.getField('extra');
@@ -300,7 +297,7 @@ $__gscc.app = {
    * @param {String} extraString
    */
   setFieldFromExtra: function (extraString) {
-    let count = 0;
+    let count = '';
     if (extraString.startsWith(this.__extraEntryPrefix)) {
       try {
         const regex = new RegExp(
@@ -308,9 +305,11 @@ $__gscc.app = {
           'g',
         );
         // meh
-        const match = extraString.match(regex)[0];
-        const split = match.split(':')[1].trim();
-        count = parseInt(split);
+        const match = extraString.match(regex);
+        if (match){
+          const split = match[0].split(':')[1].trim();
+          count = parseInt(split);
+        }
       } catch {
         // dead case for weird behavior
       }
@@ -384,10 +383,11 @@ $__gscc.app = {
     window.alert(unSupportedEntryTypeString);
     return;
   },
-  updateItemMenuEntries: async function () {
+
+  updateItemMenuEntries: async function (items = null) {
     const zoteroPane = $__gscc.app.getActivePane();
     const window = Zotero.getMainWindow();
-
+  
     if (!zoteroPane.canEditLibrary()) {
       const permissionAlertString = await window.document.l10n.formatValue(
         'gscc-lackPermissions',
@@ -395,7 +395,12 @@ $__gscc.app = {
       window.alert(permissionAlertString);
       return;
     }
-    await this.processItems(zoteroPane.getSelectedItems());
+  
+    if (!items) {
+      items = zoteroPane.getSelectedItems();
+    }
+  
+    await this.processItems(items);
   },
   updateGroup: async function () {
     const window = Zotero.getMainWindow();
@@ -416,29 +421,6 @@ $__gscc.app = {
    * @param {ZoteroGenericItem[]} items
    */
   processItems: async function (items) {
-    const useQueue = Zotero.Prefs.get(
-      'extensions.zotero.gscc.useRandomWait',
-      $__gscc.app.__preferenceDefaults.useRandomWait,
-    );
-
-    let queueMinWaitMs;
-    let queueMaxWaitMs;
-
-    $__gscc.debugger.info(`Use Queue: ${useQueue}`);
-
-    if (useQueue) {
-      queueMinWaitMs = Zotero.Prefs.get(
-        'extensions.zotero.gscc.randomWaitMinMs',
-        $__gscc.app.__preferenceDefaults.randomWaitMinMs,
-      );
-      queueMaxWaitMs = Zotero.Prefs.get(
-        'extensions.zotero.gscc.randomWaitMaxMs',
-        $__gscc.app.__preferenceDefaults.randomWaitMaxMs,
-      );
-
-      $__gscc.debugger.info(`Min: ${queueMinWaitMs} Max: ${queueMaxWaitMs}`);
-    }
-
     /**
      * @param {number} index
      * @param {ZoteroGenericItem} item
@@ -451,19 +433,8 @@ $__gscc.app = {
           )}': empty title or missing creator information'`,
         );
       } else {
-        // check the prefs in case user override, don't use it on the first item
-        // either way
-        if (useQueue && index > 0) {
-          const queueTime = $__gscc.util.randomInteger(
-            queueMinWaitMs,
-            queueMaxWaitMs,
-          );
-
-          $__gscc.debugger.info(`queued for ${queueTime} ms later.`);
-          await $__gscc.util.sleep(queueTime);
-        }
-
         const response = await this.retrieveCitationData(item);
+        $__gscc.debugger.info(`ResponseText: ${response.responseText}`);
         await this.processCitationResponse(
           response.status,
           response.responseText,
@@ -623,15 +594,16 @@ $__gscc.app = {
     );
 
     let titleSearchString;
+    let rawTitle = item.getField('title').replace(/<[^>]+>/g, '');
     if (useSearchTitleFuzzyMatch) {
       $__gscc.debugger.info(
         `Search Param: Using Fuzzy Title Match per Preferences`,
       );
-      titleSearchString = `${item.getField('title')}`;
+      titleSearchString = `${rawTitle}`;
     } else {
       // this is a dead match; kinda risky for hand-entered data but match is
       // good on Zotero grabs
-      titleSearchString = `"${item.getField('title')}"`;
+      titleSearchString = `"${rawTitle}"`;
     }
 
     let paramAuthors = '';
@@ -661,7 +633,13 @@ $__gscc.app = {
       }
     }
 
-    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q=${titleSearchString}&as_epq=&as_occt=title&num=1${paramAuthors}${paramYearRange}`;
+    const scholarurl = Zotero.Prefs.get(
+      'extensions.zotero.gscc.mirrorurl',
+      $__gscc.app.__preferenceDefaults.mirrorurl,
+    );
+    const targetUrl = `${scholarurl}scholar?hl=zh&q=${titleSearchString}&as_epq=&as_occt=title&num=1${paramAuthors}${paramYearRange}`;
+    
+    
     $__gscc.debugger.info(`Search Endpoint Ready: ${targetUrl}`);
 
     return encodeURI(targetUrl);

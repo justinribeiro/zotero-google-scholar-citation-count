@@ -1,107 +1,36 @@
 <linkset>
   <html:link rel="localization" href="gscc-prefs.ftl" />
 </linkset>
-<vbox>
-  <groupbox aria-labelledby="preferences-gscc-enable-random-wait-timing">
-    <label>
-      <html:h2
-        id="preferences-gscc-enable-random-wait-timing"
-        data-l10n-id="preferences-gscc-enable-random-wait-timing"
-      />
-    </label>
-    <vbox>
-      <html:p
-        id="preferences-gscc-random-wait-timing-explain"
-        data-l10n-id="preferences-gscc-random-wait-timing-explain"
-      />
-    </vbox>
-    <label>
-      <html:h3
-        id="preferences-gscc-randomWaitMinMs"
-        data-l10n-id="preferences-gscc-randomWaitMinMs"
-      />
-    </label>
-    <html:input
-      type="text"
-      preference="extensions.zotero.gscc.randomWaitMinMs"
-    />
-    <label>
-      <html:h3
-        id="preferences-gscc-randomWaitMaxMs"
-        data-l10n-id="preferences-gscc-randomWaitMaxMs"
-      />
-    </label>
-    <html:input
-      type="text"
-      preference="extensions.zotero.gscc.randomWaitMaxMs"
-    />
-  </groupbox>
-  <groupbox aria-labelledby="preferences-gscc-search-params">
-    <vbox>
-      <label>
-        <html:h2
-          id="preferences-gscc-search-params"
-          data-l10n-id="preferences-gscc-search-params"
-        />
-      </label>
-      <html:p
-        id="preferences-gscc-search-params-explain"
-        data-l10n-id="preferences-gscc-search-params-explain"
-      />
-    </vbox>
-    <vbox>
-      <label>
-        <html:h3
-          id="preferences-gscc-useSearchTitleFuzzyMatch"
-          data-l10n-id="preferences-gscc-useSearchTitleFuzzyMatch"
-        />
-      </label>
-      <html:p
-        id="preferences-gscc-useSearchTitleFuzzyMatch-explain"
-        data-l10n-id="preferences-gscc-useSearchTitleFuzzyMatch-explain"
-      />
-    </vbox>
-    <checkbox
-      id="preferences-gscc-useSearchTitleFuzzyMatch-cb"
-      data-l10n-id="preferences-gscc-useSearchTitleFuzzyMatch-cb"
-      preference="extensions.zotero.gscc.useSearchTitleFuzzyMatch"
-      native="true"
-    />
-    <vbox>
-      <label>
-        <html:h3
-          id="preferences-gscc-useDateRangeMatch"
-          data-l10n-id="preferences-gscc-useDateRangeMatch"
-        />
-      </label>
-      <html:p
-        id="preferences-gscc-useDateRangeMatch-explain"
-        data-l10n-id="preferences-gscc-useDateRangeMatch-explain"
-      />
-    </vbox>
-    <checkbox
-      id="preferences-gscc-useDateRangeMatch-cb"
-      data-l10n-id="preferences-gscc-useDateRangeMatch-cb"
-      preference="extensions.zotero.gscc.useDateRangeMatch"
-      native="true"
-    />
-    <vbox>
-      <label>
-        <html:h3
-          id="preferences-gscc-useSearchAuthorsMatch"
-          data-l10n-id="preferences-gscc-useSearchAuthorsMatch"
-        />
-      </label>
-      <html:p
-        id="preferences-gscc-useSearchAuthorsMatch-explain"
-        data-l10n-id="preferences-gscc-useSearchAuthorsMatch-explain"
-      />
-    </vbox>
-    <checkbox
-      id="preferences-gscc-useSearchAuthorsMatch-cb"
-      data-l10n-id="preferences-gscc-useSearchAuthorsMatch-cb"
-      preference="extensions.zotero.gscc.useSearchAuthorsMatch"
-      native="true"
-    />
-  </groupbox>
-</vbox>
+
+<groupbox aria-labelledby="preferences-gscc-mirror-title">
+  <html:b id="preferences-gscc-mirror-title" data-l10n-id="preferences-gscc-mirror-title" style="margin-top: 2em;"/>
+  <hbox style="display: flex; width: 100%;">
+    <menulist preference="extensions.zotero.gscc.mirrorurl" style="flex: 4; min-width: 0; text-align: left;" native="true">
+        <menupopup>
+            <menuitem label="https://scholar.google.com/✅" value="https://scholar.google.com/"/>
+            <menuitem label="https://scholar.lanfanshu.cn/✅" value="https://scholar.lanfanshu.cn/"/>
+            <menuitem label="https://xueshu.lanfanshu.cn/✅" value="https://xueshu.lanfanshu.cn/"/>
+            <menuitem label="https://x.sci-hub.org.cn/❌" value="https://x.sci-hub.org.cn/"/>
+            <menuitem label="https://www.dotaindex.com/❌" value="https://www.dotaindex.com/"/>
+            <menuitem label="https://xs.gupiaoq.com/❌" value="https://xs.gupiaoq.com/"/>
+            <menuitem label="https://xs.vygc.top/❌" value="https://xs.vygc.top/"/>
+            <menuitem label="https://xs.typicalgame.com/❌" value="https://xs.typicalgame.com/"/>
+        </menupopup>
+    </menulist>
+    <html:input type="text" preference="extensions.zotero.gscc.mirrorurl" style="flex: 6; width: 100%; text-align: left;" placeholder="Custom URL"/>
+  </hbox>
+</groupbox>
+
+<groupbox aria-labelledby="preferences-gscc-search-params">
+  <html:b id="preferences-gscc-search-params" data-l10n-id="preferences-gscc-search-params" style="margin-top: 2em;"/>
+  <html:p id="preferences-gscc-search-params-explain" data-l10n-id="preferences-gscc-search-params-explain"/>
+  <html:b id="preferences-gscc-useSearchTitleFuzzyMatch" data-l10n-id="preferences-gscc-useSearchTitleFuzzyMatch" style="margin-top: 2em;"/>
+  <html:p id="preferences-gscc-useSearchTitleFuzzyMatch-explain" data-l10n-id="preferences-gscc-useSearchTitleFuzzyMatch-explain"/>
+  <checkbox id="preferences-gscc-useSearchTitleFuzzyMatch-cb" data-l10n-id="preferences-gscc-useSearchTitleFuzzyMatch-cb" preference="extensions.zotero.gscc.useSearchTitleFuzzyMatch" native="true"/>
+  <html:b id="preferences-gscc-useDateRangeMatch" data-l10n-id="preferences-gscc-useDateRangeMatch" style="margin-top: 2em;"/>
+  <html:p id="preferences-gscc-useDateRangeMatch-explain" data-l10n-id="preferences-gscc-useDateRangeMatch-explain"/>
+  <checkbox id="preferences-gscc-useDateRangeMatch-cb" data-l10n-id="preferences-gscc-useDateRangeMatch-cb" preference="extensions.zotero.gscc.useDateRangeMatch" native="true"/>
+  <html:b id="preferences-gscc-useSearchAuthorsMatch" data-l10n-id="preferences-gscc-useSearchAuthorsMatch" style="margin-top: 2em;"/>
+  <html:p id="preferences-gscc-useSearchAuthorsMatch-explain" data-l10n-id="preferences-gscc-useSearchAuthorsMatch-explain"/>
+  <checkbox id="preferences-gscc-useSearchAuthorsMatch-cb" data-l10n-id="preferences-gscc-useSearchAuthorsMatch-cb" preference="extensions.zotero.gscc.useSearchAuthorsMatch" native="true"/>
+</groupbox>
