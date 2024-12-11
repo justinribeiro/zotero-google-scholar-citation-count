@@ -622,16 +622,22 @@ $__gscc.app = {
       $__gscc.app.__preferenceDefaults.useDateRangeMatch,
     );
 
+    // Strip HTML from titles as breaks matching in GS
+    const parser = new DOMParser();
+    const sanitizedTitle =
+      parser.parseFromString(item.getField('title'), 'text/html').body
+        .textContent || '';
+
     let titleSearchString;
     if (useSearchTitleFuzzyMatch) {
       $__gscc.debugger.info(
         `Search Param: Using Fuzzy Title Match per Preferences`,
       );
-      titleSearchString = `${item.getField('title')}`;
+      titleSearchString = `${sanitizedTitle}`;
     } else {
       // this is a dead match; kinda risky for hand-entered data but match is
       // good on Zotero grabs
-      titleSearchString = `"${item.getField('title')}"`;
+      titleSearchString = `"${sanitizedTitle}"`;
     }
 
     let paramAuthors = '';
