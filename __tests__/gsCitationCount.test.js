@@ -68,15 +68,19 @@ describe('Verify $__gscc.app sanity', () => {
     expect(test).toEqual('GSCC: NoCitationData');
   });
 
-  it('generateItemUrl() should output string', () => {
-    const string = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
+  it('generateItemUrl() should output string', async () => {
+    const string = await base.$__gscc.app.generateItemUrl(
+      singleItemNoCount.data,
+    );
     expect(string).toEqual(
       'https://scholar.google.com/scholar?hl=en&q=%22Potential%20Biases%20in%20Leadership%20Measures:%20How%20Prototypes,%20Leniency,%20and%20General%20Satisfaction%20Relate%20to%20Ratings%20and%20Rankings%20of%20Transformational%20and%20Transactional%20Leadership%20Constructs%22&as_epq=&as_occt=title&num=1&as_sauthors=Bass+Avolio',
     );
   });
 
-  it('generateItemUrl() should handle HTML in title', () => {
-    const string = base.$__gscc.app.generateItemUrl(singleItemHtmlTitle.data);
+  it('generateItemUrl() should handle HTML in title', async () => {
+    const string = await base.$__gscc.app.generateItemUrl(
+      singleItemHtmlTitle.data,
+    );
     expect(string).toEqual(
       'https://scholar.google.com/scholar?hl=en&q=%22(Y0.25Yb0.25Er0.25Lu0.25)2(Zr0.5Hf0.5)2O7:%20a%20defective%20fluorite%20structured%20high%20entropy%20ceramic%20with%20low%20thermal%20conductivity%20and%20close%20thermal%20expansion%20coefficient%20to%20Al2O3%22&as_epq=&as_occt=title&num=1&as_sauthors=Zhao+Chen+Xiang+Dai+Wang',
     );
@@ -293,5 +297,13 @@ describe('Verify $__gscc.app sanity', () => {
     await base.$__gscc.app.processItems(itemsList);
 
     expect(info).toHaveBeenCalledTimes(6);
+  });
+
+  it('getApiEndpoint handles bad data URL', async () => {
+    const alert = jest.spyOn(global.window, 'alert');
+    base.$__gscc.app.__preferenceDefaults.defaultGsApiEndpoint = 'gibbgerish';
+    await base.$__gscc.app.getApiEndpoint();
+
+    expect(alert).toHaveBeenCalledTimes(1);
   });
 });

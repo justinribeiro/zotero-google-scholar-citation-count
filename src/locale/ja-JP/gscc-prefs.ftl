@@ -16,5 +16,9 @@ preferences-gscc-useSearchAuthorsMatch = 著者パラメータを使用
 preferences-gscc-useSearchAuthorsMatch-explain = 検索パラメータに著者名を追加するように検索動作を変更します。
 preferences-gscc-useSearchAuthorsMatch-cb =
   .label = 著者検索パラメータを使用（デフォルト：true）
+preferences-gscc-api-endpoint = Google Scholar API エンドポイント
+preferences-gscc-api-endpoint-explain = 地域の制限により Google Scholar にアクセスできない場合は、これをプロキシまたは地域の Google Scholar ドメインに変更してください。
+preferences-gscc-defaultGsApiEndpoint =
+  .label = Google Scholar API エンドポイント（デフォルト: https://scholar.google.com/）
 
 
