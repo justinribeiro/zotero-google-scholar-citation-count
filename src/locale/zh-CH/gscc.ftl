@@ -9,3 +9,4 @@ gscc-lackPermissions = 您没有权限编辑此库。
 gscc-unSupportedEntryType = 不支持更新此类型条目的引用。
 gscc-unSupportedGroupCollection =
   .label = 尚未实现对组的更新。
+gscc-invalidGoogleScholarURL = Google 学术的 URL 格式似乎不正确；请检查“设置 > Google 学术引用计数”以验证您的 Google 学术 URL。

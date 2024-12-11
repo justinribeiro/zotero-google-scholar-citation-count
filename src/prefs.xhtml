@@ -2,6 +2,30 @@
   <html:link rel="localization" href="gscc-prefs.ftl" />
 </linkset>
 <vbox>
+  <groupbox aria-labelledby="preferences-gscc-api-endpoint">
+    <label>
+      <html:h2
+        id="preferences-gscc-api-endpoint"
+        data-l10n-id="preferences-gscc-api-endpoint"
+      />
+    </label>
+    <vbox>
+      <html:p
+        id="preferences-gscc-api-endpoint-explain"
+        data-l10n-id="preferences-gscc-api-endpoint-explain"
+      />
+    </vbox>
+    <label>
+      <html:h3
+        id="preferences-gscc-defaultGsApiEndpoint"
+        data-l10n-id="preferences-gscc-defaultGsApiEndpoint"
+      />
+    </label>
+    <html:input
+      type="url"
+      preference="extensions.zotero.gscc.defaultGsApiEndpoint"
+    />
+  </groupbox>
   <groupbox aria-labelledby="preferences-gscc-enable-random-wait-timing">
     <label>
       <html:h2

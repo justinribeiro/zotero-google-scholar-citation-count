@@ -9,3 +9,4 @@ gscc-lackPermissions = Vous n'avez pas la permission de modifier cette biblioth�
 gscc-unSupportedEntryType = La mise à jour des citations pour ce type d'entrée n'est pas prise en charge.
 gscc-unSupportedGroupCollection =
   .label = La mise à jour d'un groupe n'est pas encore implémentée.
+gscc-invalidGoogleScholarURL = L'URL de Google Scholar semble malformée ; veuillez vérifier "Paramètres > Nombre de citations Google Scholar" pour confirmer votre URL Google Scholar.

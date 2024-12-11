@@ -205,11 +205,6 @@ $__gscc.app = {
    */
   __noData: 'NoCitationData',
   /**
-   * API endpoint for Google Scholar
-   * @private
-   */
-  __apiEndpoint: 'https://scholar.google.com/',
-  /**
    * Default String search in Google Scholar,
    * will override based on locale
    * @private
@@ -232,6 +227,7 @@ $__gscc.app = {
     useSearchTitleFuzzyMatch: false,
     useSearchAuthorsMatch: true,
     useDateRangeMatch: false,
+    defaultGsApiEndpoint: 'https://scholar.google.com',
   },
   /**
    * Initialize our world.
@@ -439,6 +435,17 @@ $__gscc.app = {
       $__gscc.debugger.info(`Min: ${queueMinWaitMs} Max: ${queueMaxWaitMs}`);
     }
 
+    // we need to validate if the Google Scholar URL setting is sane
+    // otherwise we risk DDoS'ing the user with alerts
+    const apiEndpoint = await this.getApiEndpoint();
+    if (!apiEndpoint) {
+      // we threw the error to the user, bail on any other work
+      $__gscc.debugger.error(
+        `Google Scholar URL is malformed in Settings, stopping work.`,
+      );
+      return;
+    }
+
     /**
      * @param {number} index
      * @param {ZoteroGenericItem} item
@@ -517,7 +524,7 @@ $__gscc.app = {
    * @param {function} callback callback on complete
    */
   retrieveCitationData: async function (item) {
-    const targetUrl = this.generateItemUrl(item);
+    const targetUrl = await this.generateItemUrl(item);
     return $__gscc.util.request({ method: 'GET', url: targetUrl });
   },
   /**
@@ -602,11 +609,36 @@ $__gscc.app = {
     }
   },
   /**
+   * Validate and return the Google Scholar URL API target
+   * @returns {URL|null}
+   */
+  getApiEndpoint: async function () {
+    let apiEndpoint;
+    try {
+      apiEndpoint = new URL(
+        Zotero.Prefs.get(
+          'extensions.zotero.gscc.defaultGsApiEndpoint',
+          $__gscc.app.__preferenceDefaults.defaultGsApiEndpoint,
+        ),
+      );
+    } catch {
+      const window = Zotero.getMainWindow();
+      const invalidGoogleScholarURL = await window.document.l10n.formatValue(
+        'gscc-invalidGoogleScholarURL',
+      );
+      window.alert(invalidGoogleScholarURL);
+      return null;
+    }
+    return apiEndpoint;
+  },
+
+  /**
    * Generate a Google Scholar URL to use to fetch data
    * @param {ZoteroGenericItem} item
    * @returns string
    */
-  generateItemUrl: function (item) {
+  generateItemUrl: async function (item) {
+    const apiEndpoint = await $__gscc.app.getApiEndpoint();
     const useSearchTitleFuzzyMatch = Zotero.Prefs.get(
       'extensions.zotero.gscc.useSearchTitleFuzzyMatch',
       $__gscc.app.__preferenceDefaults.useSearchTitleFuzzyMatch,
@@ -667,7 +699,7 @@ $__gscc.app = {
       }
     }
 
-    const targetUrl = `${this.__apiEndpoint}scholar?hl=en&q=${titleSearchString}&as_epq=&as_occt=title&num=1${paramAuthors}${paramYearRange}`;
+    const targetUrl = `${apiEndpoint.href}scholar?hl=en&q=${titleSearchString}&as_epq=&as_occt=title&num=1${paramAuthors}${paramYearRange}`;
     $__gscc.debugger.info(`Search Endpoint Ready: ${targetUrl}`);
 
     return encodeURI(targetUrl);

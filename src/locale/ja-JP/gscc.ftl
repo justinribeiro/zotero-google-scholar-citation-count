@@ -9,4 +9,5 @@ gscc-lackPermissions = このライブラリを編集する権限がありませ
 gscc-unSupportedEntryType = この種類のエントリの引用数更新はサポートされていません。
 gscc-unSupportedGroupCollection =
   .label = グループの更新はまだ実装されていません。
+gscc-invalidGoogleScholarURL = Google Scholar の URL が不正な形式のようです。"設定 > Google Scholar 引用数" で Google Scholar の URL を確認してください。
 

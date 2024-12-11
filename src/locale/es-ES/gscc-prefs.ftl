@@ -16,3 +16,7 @@ preferences-gscc-useSearchAuthorsMatch = Usar parámetro de autores
 preferences-gscc-useSearchAuthorsMatch-explain = Cambia el comportamiento de búsqueda para agregar los nombres de los autores a los parámetros de búsqueda.
 preferences-gscc-useSearchAuthorsMatch-cb =
   .label = Usar parámetro de búsqueda por autores (por defecto: true)
+preferences-gscc-api-endpoint = Punto de acceso API de Google Scholar
+preferences-gscc-api-endpoint-explain = Si no puede acceder a Google Scholar debido a restricciones en su región, cambie esto a un proxy o un dominio regional de Google Scholar.
+preferences-gscc-defaultGsApiEndpoint =
+  .label = Punto de acceso API de Google Scholar (predeterminado: https://scholar.google.com/)
