@@ -8,6 +8,7 @@ const hasRecaptcha = require('./__data__/gsResponseHasRecaptcha.js');
 const singleItemWithCount = require('./__data__/zoteroItemsListSingleItemWithCount.js');
 const singleItemNoCount = require('./__data__/zoteroItemsListSingleItemWithNoCount.js');
 const singleItemNoTitle = require('./__data__/zoteroItemsListSingleItemWithNoTitle.js');
+const singleItemHtmlTitle = require('./__data__/zoteroItemsListSingleItemWithHtmlTitle.js');
 const singleItemNoCreators = require('./__data__/zoteroItemsListSingleItemWithNoCreators.js');
 const itemsList = require('./__data__/zoteroItemsList.js');
 
@@ -71,6 +72,13 @@ describe('Verify $__gscc.app sanity', () => {
     const string = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
     expect(string).toEqual(
       'https://scholar.google.com/scholar?hl=en&q=%22Potential%20Biases%20in%20Leadership%20Measures:%20How%20Prototypes,%20Leniency,%20and%20General%20Satisfaction%20Relate%20to%20Ratings%20and%20Rankings%20of%20Transformational%20and%20Transactional%20Leadership%20Constructs%22&as_epq=&as_occt=title&num=1&as_sauthors=Bass+Avolio',
+    );
+  });
+
+  it('generateItemUrl() should handle HTML in title', () => {
+    const string = base.$__gscc.app.generateItemUrl(singleItemHtmlTitle.data);
+    expect(string).toEqual(
+      'https://scholar.google.com/scholar?hl=en&q=%22(Y0.25Yb0.25Er0.25Lu0.25)2(Zr0.5Hf0.5)2O7:%20a%20defective%20fluorite%20structured%20high%20entropy%20ceramic%20with%20low%20thermal%20conductivity%20and%20close%20thermal%20expansion%20coefficient%20to%20Al2O3%22&as_epq=&as_occt=title&num=1&as_sauthors=Zhao+Chen+Xiang+Dai+Wang',
     );
   });
 
