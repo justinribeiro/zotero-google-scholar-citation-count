@@ -216,6 +216,12 @@ $__gscc.app = {
    */
   __initialized: false,
   /**
+   * Key holder for Zotero Column Management
+   * @type {string | string[] | false}
+   * @private
+   */
+  __registeredDataKey: false,
+  /**
    * Fallbacks for Zotero preferences
    * @private
    */
@@ -282,26 +288,28 @@ $__gscc.app = {
     const columnLastUpdateLabel = await doc.l10n.formatValue(
       'gscc-lastupdated-column-name',
     );
-    $__gscc.app.registeredDataKey =
-      await Zotero.ItemTreeManager.registerColumns({
-        dataKey: 'gsccCount',
-        label: columnLabel,
-        pluginID: 'justin@justinribeiro.com',
-        dataProvider: (item, dataKey) => {
-          const data = item.getField('extra');
-          return this.setCitationCountColumn(data);
-        },
-      });
 
-    await Zotero.ItemTreeManager.registerColumns({
-      dataKey: 'gsccCountUpdated',
-      label: columnLastUpdateLabel,
-      pluginID: 'justin@justinribeiro.com',
-      dataProvider: (item, dataKey) => {
-        const data = item.getField('extra');
-        return this.setCitationCountLastUpdatedColumn(data);
-      },
-    });
+    $__gscc.app.__registeredDataKey =
+      await Zotero.ItemTreeManager.registerColumns([
+        {
+          dataKey: 'gsccCount',
+          label: columnLabel,
+          pluginID: 'justin@justinribeiro.com',
+          dataProvider: (item, dataKey) => {
+            const data = item.getField('extra');
+            return this.setCitationCountColumn(data);
+          },
+        },
+        {
+          dataKey: 'gsccCountUpdated',
+          label: columnLastUpdateLabel,
+          pluginID: 'justin@justinribeiro.com',
+          dataProvider: (item, dataKey) => {
+            const data = item.getField('extra');
+            return this.setCitationCountLastUpdatedColumn(data);
+          },
+        },
+      ]);
   },
 
   /**
