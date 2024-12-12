@@ -18,5 +18,4 @@ preferences-gscc-useSearchAuthorsMatch-cb =
   .label = Usar parámetro de búsqueda por autores (por defecto: true)
 preferences-gscc-api-endpoint = Punto de acceso API de Google Scholar
 preferences-gscc-api-endpoint-explain = Si no puede acceder a Google Scholar debido a restricciones en su región, cambie esto a un proxy o un dominio regional de Google Scholar.
-preferences-gscc-defaultGsApiEndpoint =
-  .label = Punto de acceso API de Google Scholar (predeterminado: https://scholar.google.com/)
+preferences-gscc-defaultGsApiEndpoint = Punto de acceso API de Google Scholar (predeterminado: https://scholar.google.com/)
