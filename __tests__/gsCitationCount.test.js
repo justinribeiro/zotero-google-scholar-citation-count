@@ -6,6 +6,7 @@ const noCitation = require('./__data__/gsResponseNoCitation.js');
 const hasPaperNoCitations = require('./__data__/gsResponseHasPaperNoCitations.js');
 const hasRecaptcha = require('./__data__/gsResponseHasRecaptcha.js');
 const singleItemWithCount = require('./__data__/zoteroItemsListSingleItemWithCount.js');
+const singleItemWithCountLegacyFormat = require('./__data__/zoteroItemsListSingleItemWithCountLegacyFormat.js');
 const singleItemNoCount = require('./__data__/zoteroItemsListSingleItemWithNoCount.js');
 const singleItemNoTitle = require('./__data__/zoteroItemsListSingleItemWithNoTitle.js');
 const singleItemHtmlTitle = require('./__data__/zoteroItemsListSingleItemWithHtmlTitle.js');
@@ -18,6 +19,8 @@ jest.useRealTimers();
 describe('Verify $__gscc.app sanity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers('modern');
+    jest.setSystemTime(new Date(2024, 12, 1));
   });
 
   it('init() should set app', () => {
@@ -59,13 +62,13 @@ describe('Verify $__gscc.app sanity', () => {
   it('buildcitecountstring() string + count', () => {
     const count = base.$__gscc.app.getCiteCount(hasCitation.data);
     const test = base.$__gscc.app.buildCiteCountString(count);
-    expect(test).toEqual('GSCC: 0001028');
+    expect(test).toEqual('GSCC: 0001028 2025-01-01T08:00:00.000Z');
   });
 
   it('buildcitecountstring() string + no data', () => {
     const count = base.$__gscc.app.getCiteCount(noCitation.data);
     const test = base.$__gscc.app.buildCiteCountString(count);
-    expect(test).toEqual('GSCC: NoCitationData');
+    expect(test).toEqual('GSCC: NoCitationData 2025-01-01T08:00:00.000Z');
   });
 
   it('generateItemUrl() should output string', async () => {
@@ -86,15 +89,27 @@ describe('Verify $__gscc.app sanity', () => {
     );
   });
 
-  it('updateItem() should change extra field when data present', () => {
-    const item = singleItemWithCount.data;
+  it('updateItem() should change extra field when legacy data present', () => {
+    const item = singleItemWithCountLegacyFormat.data;
     const extra = jest.spyOn(item, 'setField');
     const tx = jest.spyOn(item, 'saveTx');
     base.$__gscc.app.updateItem(item, 400);
     expect(extra).toHaveBeenCalled();
     expect(tx).toHaveBeenCalled();
     expect(item.getField('extra')).toEqual(
-      'GSCC: 0000400 \nPublisher: SAGE Publications Inc',
+      'GSCC: 0000400 2025-01-01T08:00:00.000Z \nPublisher: SAGE Publications Inc',
+    );
+  });
+
+  it('updateItem() should change extra field when data present', () => {
+    const item = singleItemWithCount.data;
+    const extra = jest.spyOn(item, 'setField');
+    const tx = jest.spyOn(item, 'saveTx');
+    base.$__gscc.app.updateItem(item, 1000);
+    expect(extra).toHaveBeenCalled();
+    expect(tx).toHaveBeenCalled();
+    expect(item.getField('extra')).toEqual(
+      'GSCC: 0001000 2025-01-01T08:00:00.000Z \nPublisher: SAGE Publications Inc',
     );
   });
 
@@ -105,7 +120,9 @@ describe('Verify $__gscc.app sanity', () => {
     base.$__gscc.app.updateItem(item, 10);
     expect(extra).toHaveBeenCalled();
     expect(tx).toHaveBeenCalled();
-    expect(item.getField('extra')).toEqual('GSCC: 0000010 \n');
+    expect(item.getField('extra')).toEqual(
+      'GSCC: 0000010 2025-01-01T08:00:00.000Z \n',
+    );
   });
 
   it('hasRequiredFields() should return true with sane data', () => {
@@ -139,7 +156,9 @@ describe('Verify $__gscc.app sanity', () => {
         base.$__gscc.app.updateItem(item, citeCount);
       },
     );
-    expect(item.getField('extra')).toEqual('GSCC: 0001028 \n');
+    expect(item.getField('extra')).toEqual(
+      'GSCC: 0001028 2025-01-01T08:00:00.000Z \n',
+    );
   });
 
   it('processCitationResponse() 200 should warn on console when item not found', () => {
@@ -247,20 +266,66 @@ describe('Verify $__gscc.app sanity', () => {
   });
 
   it('set custom column, check string types for errors', () => {
-    const noGSCCString = base.$__gscc.app.setFieldFromExtra('');
+    const noGSCCString = base.$__gscc.app.setCitationCountColumn('');
     expect(noGSCCString).toBe(0);
 
-    const aGSCCString = base.$__gscc.app.setFieldFromExtra('GSCC: 00001000');
+    const aGSCCString =
+      base.$__gscc.app.setCitationCountColumn('GSCC: 00001000');
     expect(aGSCCString).toBe(1000);
 
     const nospaceGSCCString =
-      base.$__gscc.app.setFieldFromExtra('GSCC:00001000');
+      base.$__gscc.app.setCitationCountColumn('GSCC:00001000');
     expect(nospaceGSCCString).toBe(1000);
 
-    const subGSCCString = base.$__gscc.app.setFieldFromExtra(
+    const subGSCCString = base.$__gscc.app.setCitationCountColumn(
       'ds323 GSCC:00001000',
     );
     expect(subGSCCString).toBe(0);
+
+    const newGSCCString = base.$__gscc.app.setCitationCountColumn(
+      'GSCC: 0000010 2025-01-01T08:00:00.000Z \n',
+    );
+    expect(newGSCCString).toBe(10);
+
+    const newGSCCStringLong = base.$__gscc.app.setCitationCountColumn(
+      'GSCC: 0000400 2025-01-01T08:00:00.000Z \nPublisher: SAGE Publications Inc',
+    );
+    expect(newGSCCStringLong).toBe(400);
+  });
+
+  it('set custom column, check string types for errors', () => {
+    const noGSCCString = base.$__gscc.app.setCitationCountLastUpdatedColumn('');
+    expect(noGSCCString).toBe('');
+
+    const aGSCCString =
+      base.$__gscc.app.setCitationCountLastUpdatedColumn('GSCC: 00001000');
+    expect(aGSCCString).toBe('');
+
+    const nospaceGSCCString =
+      base.$__gscc.app.setCitationCountLastUpdatedColumn('GSCC:00001000');
+    expect(nospaceGSCCString).toBe('');
+
+    const subGSCCString = base.$__gscc.app.setCitationCountLastUpdatedColumn(
+      'ds323 GSCC:00001000',
+    );
+    expect(subGSCCString).toBe('');
+
+    const newGSCCString = base.$__gscc.app.setCitationCountLastUpdatedColumn(
+      'GSCC: 0000010 2025-01-01T08:00:00.000Z \n',
+    );
+    expect(newGSCCString).toBe('1/1/2025, 12:00:00 AM');
+
+    const newGSCCStringLong =
+      base.$__gscc.app.setCitationCountLastUpdatedColumn(
+        'GSCC: 0000400 2025-01-01T08:00:00.000Z \nPublisher: SAGE Publications Inc',
+      );
+    expect(newGSCCStringLong).toBe('1/1/2025, 12:00:00 AM');
+
+    const testGSCCStringLong =
+      base.$__gscc.app.setCitationCountLastUpdatedColumn(
+        'GSCC: 0000400 \n Publisher: SAGE Publications Inc',
+      );
+    expect(testGSCCStringLong).toBe('');
   });
 
   it('addToWindow sets up world', async () => {

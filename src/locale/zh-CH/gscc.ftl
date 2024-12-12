@@ -1,6 +1,7 @@
 gscc-menuitem =
   .label = 更新 Google 学术引用次数
 gscc-column-name = 引用次数
+gscc-lastupdated-column-name = 引用计数上次更新日期
 gscc-update-all =
   .label = 更新所有 Google 学术引用次数。
 gscc-recapatcha-alert = 请在现在打开的页面上输入验证码，然后重试更新引用，或者如果没有出现验证码，请等待一段时间以解除 Google 的限制。

@@ -1,6 +1,7 @@
 gscc-menuitem =
   .label = Mettre à jour le nombre de citations Google Scholar
 gscc-column-name = Nombre de citations
+gscc-lastupdated-column-name = Date de dernière mise à jour du nombre de citations
 gscc-update-all =
   .label = Mettre à jour tous les nombres de citations Google Scholar.
 gscc-recapatcha-alert = Veuillez entrer le Captcha sur la page qui va s'ouvrir, puis réessayez de mettre à jour les citations, ou attendez un moment pour être débloqué par Google si le Captcha n'est pas présent.

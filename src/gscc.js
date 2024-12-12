@@ -279,6 +279,9 @@ $__gscc.app = {
     $__gscc.debugger.info(`Menu Item Option Added to Right Click Menu`);
 
     const columnLabel = await doc.l10n.formatValue('gscc-column-name');
+    const columnLastUpdateLabel = await doc.l10n.formatValue(
+      'gscc-lastupdated-column-name',
+    );
     $__gscc.app.registeredDataKey =
       await Zotero.ItemTreeManager.registerColumns({
         dataKey: 'gsccCount',
@@ -286,16 +289,26 @@ $__gscc.app = {
         pluginID: 'justin@justinribeiro.com',
         dataProvider: (item, dataKey) => {
           const data = item.getField('extra');
-          return this.setFieldFromExtra(data);
+          return this.setCitationCountColumn(data);
         },
       });
+
+    await Zotero.ItemTreeManager.registerColumns({
+      dataKey: 'gsccCountUpdated',
+      label: columnLastUpdateLabel,
+      pluginID: 'justin@justinribeiro.com',
+      dataProvider: (item, dataKey) => {
+        const data = item.getField('extra');
+        return this.setCitationCountLastUpdatedColumn(data);
+      },
+    });
   },
 
   /**
    * Set the custom column by parsing the extra field
    * @param {String} extraString
    */
-  setFieldFromExtra: function (extraString) {
+  setCitationCountColumn: function (extraString) {
     let count = 0;
     if (extraString.startsWith(this.__extraEntryPrefix)) {
       try {
@@ -312,6 +325,34 @@ $__gscc.app = {
       }
     }
     return count;
+  },
+
+  /**
+   * Set the custom column by parsing the extra field
+   * @param {String} extraString
+   */
+  setCitationCountLastUpdatedColumn: function (extraString) {
+    let match = '';
+    if (extraString.startsWith(this.__extraEntryPrefix)) {
+      try {
+        const regex = new RegExp(
+          String.raw`${this.__extraEntryPrefix}:(\s*\d+).\s(.*)[^ \n]`,
+          'g',
+        );
+        // meh
+        const matches = [...extraString.matchAll(regex)][0];
+        // clunky matching meh
+
+        const tryDate = new Date(`${matches[2]}Z`).toLocaleString();
+
+        if (tryDate !== 'Invalid Date') {
+          match = tryDate;
+        }
+      } catch {
+        // dead case for weird behavior
+      }
+    }
+    return match;
   },
 
   removeFromWindow: async function (win) {
@@ -493,7 +534,7 @@ $__gscc.app = {
 
     if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
       revisedExtraField = fieldExtra.replace(
-        new RegExp(`${this.__extraEntryPrefix}.{9}`, 'g'),
+        new RegExp(String.raw`${this.__extraEntryPrefix}:(.*)[^ \n]`, 'g'),
         buildNewCiteCount,
       );
       $__gscc.debugger.info(
@@ -719,7 +760,8 @@ $__gscc.app = {
         this.__citeCountStrLength,
       );
     }
-    return `${this.__extraEntryPrefix}: ${data}`;
+
+    return `${this.__extraEntryPrefix}: ${data} ${new Date().toISOString()}`;
   },
   /**
    * Parse the raw response for citation count
