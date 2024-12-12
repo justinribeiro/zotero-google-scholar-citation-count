@@ -18,5 +18,4 @@ preferences-gscc-useSearchAuthorsMatch-cb =
   .label = 使用作者搜索参数（默认：true）
 preferences-gscc-api-endpoint = Google 学术 API 端点
 preferences-gscc-api-endpoint-explain = 如果由于您所在地区的限制无法访问 Google 学术，请将其更改为代理或区域性 Google 学术域名。
-preferences-gscc-defaultGsApiEndpoint =
-  .label = Google 学术 API 端点（默认: https://scholar.google.com/）
+preferences-gscc-defaultGsApiEndpoint = Google 学术 API 端点（默认: https://scholar.google.com/）
