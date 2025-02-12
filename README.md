@@ -11,11 +11,15 @@
 
 ## Download Latest Version
 
-Zotero 7 - [![v4.1.1](https://img.shields.io/badge/Download-v4.1.1-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.1.1/zotero-google-scholar-citation-count-4.1.1.xpi)
+Zotero 7 - [![v4.2.0](https://img.shields.io/badge/Download-v4.2.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.2.0/zotero-google-scholar-citation-count-4.2.0.xpi)
 
 Zotero 6 - [![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
 
 ## What's New
+_v4.2.0_ - Adds ability to set custom Google Scholar endpoint; removes HTML from title search strings; saves column width state per Zotero documentation.
+
+![New Preferences for setting custom Google Scholar API endpoint](https://github.com/user-attachments/assets/1e499d4d-6fc5-4c2e-aa23-440df4554fa5)
+
 _v4.1.0_ - New translations, new preferences panel, and new search options! Matching is hard (see the Citation Counts note), but we can make it better. The preferences panel now let's your tighten or loosen some of the search parameters to Google Scholar for you use case. This is the first pass, more options to come!
 
 ![New Preferences Panel for Citation Count](https://github.com/user-attachments/assets/4f640d7a-4b3b-42fe-b5ac-bf51dcd7f68d)
