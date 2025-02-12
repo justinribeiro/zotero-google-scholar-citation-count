@@ -299,6 +299,7 @@ $__gscc.app = {
             const data = item.getField('extra');
             return this.setCitationCountColumn(data);
           },
+          zoteroPersist: ['width', 'hidden', 'sortDirection'],
         },
         {
           dataKey: 'gsccCountUpdated',
@@ -308,6 +309,7 @@ $__gscc.app = {
             const data = item.getField('extra');
             return this.setCitationCountLastUpdatedColumn(data);
           },
+          zoteroPersist: ['width', 'hidden', 'sortDirection'],
         },
       ]);
   },
