@@ -11,3 +11,5 @@ gscc-unSupportedEntryType = No se admite la actualización de citas para este ti
 gscc-unSupportedGroupCollection =
   .label = La actualización de un grupo aún no está implementada.
 gscc-invalidGoogleScholarURL = La URL de Google Scholar parece estar mal formada; por favor, revise "Configuración > Recuento de citas de Google Scholar" para verificar su URL de Google Scholar.
+gscc-progresswindow-title = Recuento de citas actualizado
+gscc-progresswindow-desc = Total de citas

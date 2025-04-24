@@ -37,6 +37,15 @@ global.Zotero = {
     registerColumns: () => {},
     unregisterColumns: () => {},
   },
+  ProgressWindow: jest.fn().mockImplementation(() => ({
+    changeHeadline: jest.fn(),
+    addDescription: jest.fn(),
+    show: jest.fn(),
+    startCloseTimer: jest.fn(),
+  })),
+  Notifier: {
+    registerObserver: jest.fn(),
+  },
 };
 
 global.document.l10n = {

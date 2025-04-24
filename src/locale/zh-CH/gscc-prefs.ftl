@@ -19,3 +19,7 @@ preferences-gscc-useSearchAuthorsMatch-cb =
 preferences-gscc-api-endpoint = Google 学术 API 端点
 preferences-gscc-api-endpoint-explain = 如果由于您所在地区的限制无法访问 Google 学术，请将其更改为代理或区域性 Google 学术域名。
 preferences-gscc-defaultGsApiEndpoint = Google 学术 API 端点（默认: https://scholar.google.com/）
+preferences-gscc-useAutoSearch = 添加时自动更新引用次数
+preferences-gscc-useAutoSearch-explain = 当项目添加到资料库时，自动搜索并更新引用次数。
+preferences-gscc-useAutoSearch-cb =
+  .label = 项目添加到资料库时自动添加引用次数（默认值：false）

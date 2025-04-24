@@ -19,5 +19,9 @@ preferences-gscc-useSearchAuthorsMatch-cb =
 preferences-gscc-api-endpoint = Google Scholar API エンドポイント
 preferences-gscc-api-endpoint-explain = 地域の制限により Google Scholar にアクセスできない場合は、これをプロキシまたは地域の Google Scholar ドメインに変更してください。
 preferences-gscc-defaultGsApiEndpoint = Google Scholar API エンドポイント（デフォルト: https://scholar.google.com/）
+preferences-gscc-useAutoSearch = 追加時に引用数を自動更新
+preferences-gscc-useAutoSearch-explain = アイテムがライブラリに追加されたときに、引用数を自動で検索・更新します。
+preferences-gscc-useAutoSearch-cb =
+  .label = アイテム追加時に引用数を自動で追加する（デフォルト：false）
 
 

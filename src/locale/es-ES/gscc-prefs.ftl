@@ -19,3 +19,7 @@ preferences-gscc-useSearchAuthorsMatch-cb =
 preferences-gscc-api-endpoint = Punto de acceso API de Google Scholar
 preferences-gscc-api-endpoint-explain = Si no puede acceder a Google Scholar debido a restricciones en su región, cambie esto a un proxy o un dominio regional de Google Scholar.
 preferences-gscc-defaultGsApiEndpoint = Punto de acceso API de Google Scholar (predeterminado: https://scholar.google.com/)
+preferences-gscc-useAutoSearch = Actualizar automáticamente el recuento de citas al añadir
+preferences-gscc-useAutoSearch-explain = Buscar y actualizar automáticamente el recuento de citas cuando se añade un elemento a la biblioteca.
+preferences-gscc-useAutoSearch-cb =
+  .label = Añadir recuento de citas automáticamente al añadir un elemento a la biblioteca (por defecto: falso)

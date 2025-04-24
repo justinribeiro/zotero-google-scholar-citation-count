@@ -19,3 +19,8 @@ preferences-gscc-useSearchAuthorsMatch-cb =
 preferences-gscc-api-endpoint = Google Scholar API Endpoint
 preferences-gscc-api-endpoint-explain = If you cannot access Google Scholar due to restrictions in your locale, change this to a proxy or regional Google Scholar domain.
 preferences-gscc-defaultGsApiEndpoint = Google Scholar API Endpoint (default: https://scholar.google.com/)
+preferences-gscc-useAutoSearch = Automatically Update Citation Count on Add
+preferences-gscc-useAutoSearch-explain = Automatically search and update the citation count when an item is added to the library.
+preferences-gscc-useAutoSearch-cb =
+  .label = Add Citation Count Automatically when Item added to Library (default: false)
+
