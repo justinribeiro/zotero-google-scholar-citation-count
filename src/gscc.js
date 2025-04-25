@@ -222,6 +222,12 @@ $__gscc.app = {
    */
   __registeredDataKey: false,
   /**
+   * Key holder for Zotero Item Notifier Management
+   * @type {string | string[] | false}
+   * @private
+   */
+  __registeredNotifierKey: false,
+  /**
    * Fallbacks for Zotero preferences
    * @private
    */
@@ -258,6 +264,17 @@ $__gscc.app = {
 
   getActivePane: function () {
     return Zotero.getActiveZoteroPane();
+  },
+
+  /**
+   * Return the a resuable progress window for user updates
+   * @returns Zotero.ProgressWindow
+   */
+  getProgressWindow: function () {
+    if (!$__gscc.app.progressWindow) {
+      $__gscc.app.progressWindow = new Zotero.ProgressWindow();
+    }
+    return $__gscc.app.progressWindow;
   },
 
   addToWindow: async function (window) {
@@ -312,6 +329,44 @@ $__gscc.app = {
           zoteroPersist: ['width', 'hidden', 'sortDirection'],
         },
       ]);
+
+    $__gscc.app.registerNotifier();
+  },
+
+  /**
+   * Register a notifier for items added to the library
+   */
+  registerNotifier: async function () {
+    const callback = {
+      notify: async (event, type, ids) => {
+        this.onItemNotify(event, type, ids);
+      },
+    };
+    $__gscc.app.__registeredNotifierKey = Zotero.Notifier.registerObserver(
+      callback,
+      ['item'],
+    );
+  },
+
+  /**
+   * Update the citation count for a newly added item
+   * @param {string} event
+   * @param {string} type
+   * @param {number[] | string[]} ids
+   */
+  onItemNotify: async (event, type, ids) => {
+    const useAutoCountUpdate = Zotero.Prefs.get(
+      'extensions.zotero.gscc.useAutoCountUpdate',
+      true,
+    );
+
+    $__gscc.debugger.info(`useAutoCountUpdate set to ${useAutoCountUpdate}`);
+
+    if (useAutoCountUpdate && event === 'add' && type === 'item') {
+      $__gscc.debugger.info(`useAutoSearch running on new add!`);
+      const newItems = await Zotero.Items.getAsync(ids);
+      await $__gscc.app.processItems(newItems);
+    }
   },
 
   /**
@@ -561,14 +616,36 @@ $__gscc.app = {
     item.setField('extra', revisedExtraField);
 
     try {
-      $__gscc.debugger.info(`updating item '${item.getField('title')}'`);
       item.saveTx();
     } catch (e) {
       $__gscc.debugger.error(
         `could not update extra field with citation count: ${e}`,
       );
     }
+
+    this.openProgressWindow(citeCount, item.getField('title'));
   },
+  /**
+   * Show the progress window pop-up with the latest change
+   * @param {number} count Total number of citations
+   * @param {string} title ZoteroItem title
+   */
+  openProgressWindow: async function (count, title) {
+    const window = Zotero.getMainWindow();
+    const progressPopUp = this.getProgressWindow();
+    const headlineLabel = await window.document.l10n.formatValue(
+      'gscc-progresswindow-title',
+    );
+    const descriptionLabel = await window.document.l10n.formatValue(
+      'gscc-progresswindow-desc',
+    );
+
+    progressPopUp.changeHeadline(headlineLabel);
+    progressPopUp.addDescription(`${descriptionLabel}: ${count}, "${title}"`);
+    progressPopUp.show();
+    progressPopUp.startCloseTimer();
+  },
+
   /**
    * Retrieve the Google Scholar Citation Count for a given Zotero item record
    * @param {ZoteroGenericItem} item Used to generate the fetch() string

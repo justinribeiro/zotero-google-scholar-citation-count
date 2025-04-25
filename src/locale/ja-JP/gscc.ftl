@@ -11,4 +11,6 @@ gscc-unSupportedEntryType = この種類のエントリの引用数更新はサ�
 gscc-unSupportedGroupCollection =
   .label = グループの更新はまだ実装されていません。
 gscc-invalidGoogleScholarURL = Google Scholar の URL が不正な形式のようです。"設定 > Google Scholar 引用数" で Google Scholar の URL を確認してください。
+gscc-progresswindow-title = 被引用数を更新しました
+gscc-progresswindow-desc = 総被引用数
 
