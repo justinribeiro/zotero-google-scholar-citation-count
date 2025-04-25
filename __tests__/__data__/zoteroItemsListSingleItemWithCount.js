@@ -12,7 +12,7 @@ const data = helpers.createItem({
   url: 'https://doi.org/10.1177/001316448904900302',
   accessDate: '2021-09-22',
   extra:
-    'GSCC: 0000505 2025-01-01T08:00:00.000Z \nPublisher: SAGE Publications Inc',
+    'GSCC: 0000505 2025-01-01T08:00:00.000Z 0.54 \nPublisher: SAGE Publications Inc',
   volume: '49',
   pages: '509-527',
   publicationTitle: 'Educational and Psychological Measurement',

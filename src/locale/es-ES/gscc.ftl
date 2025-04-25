@@ -2,6 +2,7 @@ gscc-menuitem =
   .label = Actualizar el recuento de citas de Google Scholar
 gscc-column-name = Recuento de citas
 gscc-lastupdated-column-name = Recuento de cotizaciones Fecha de última actualización
+gscc-relevancescore-column-name = Recuento de citas Puntuación de relevancia relativa
 gscc-update-all =
   .label = Actualizar todos los recuentos de citas de Google Scholar.
 gscc-recapatcha-alert = Por favor, introduzca el Captcha en la página que se abrirá ahora y luego intente actualizar las citas nuevamente, o espere un momento para que Google desbloquee si el Captcha no está presente.
