@@ -305,6 +305,9 @@ $__gscc.app = {
     const columnLastUpdateLabel = await doc.l10n.formatValue(
       'gscc-lastupdated-column-name',
     );
+    const columnRelevanceScoreLabel = await doc.l10n.formatValue(
+      'gscc-relevancescore-column-name',
+    );
 
     $__gscc.app.__registeredDataKey =
       await Zotero.ItemTreeManager.registerColumns([
@@ -313,8 +316,7 @@ $__gscc.app = {
           label: columnLabel,
           pluginID: 'justin@justinribeiro.com',
           dataProvider: (item, dataKey) => {
-            const data = item.getField('extra');
-            return this.setCitationCountColumn(data);
+            return this.setColumnData(item, 'citationCount');
           },
           zoteroPersist: ['width', 'hidden', 'sortDirection'],
         },
@@ -323,8 +325,16 @@ $__gscc.app = {
           label: columnLastUpdateLabel,
           pluginID: 'justin@justinribeiro.com',
           dataProvider: (item, dataKey) => {
-            const data = item.getField('extra');
-            return this.setCitationCountLastUpdatedColumn(data);
+            return this.setColumnData(item, 'lastUpdated');
+          },
+          zoteroPersist: ['width', 'hidden', 'sortDirection'],
+        },
+        {
+          dataKey: 'gsccRelevanceScore',
+          label: columnRelevanceScoreLabel,
+          pluginID: 'justin@justinribeiro.com',
+          dataProvider: (item, dataKey) => {
+            return this.setColumnData(item, 'relevanceScore');
           },
           zoteroPersist: ['width', 'hidden', 'sortDirection'],
         },
@@ -370,54 +380,62 @@ $__gscc.app = {
   },
 
   /**
-   * Set the custom column by parsing the extra field
+   * Set the custom column for the GsccExtra field key by parsing the extra field
    * @param {String} extraString
    */
-  setCitationCountColumn: function (extraString) {
-    let count = 0;
-    if (extraString.startsWith(this.__extraEntryPrefix)) {
-      try {
-        const regex = new RegExp(
-          String.raw`${this.__extraEntryPrefix}:(\s*\d+)`,
-          'g',
-        );
-        // meh
-        const match = extraString.match(regex)[0];
-        const split = match.split(':')[1].trim();
-        count = parseInt(split);
-      } catch {
-        // dead case for weird behavior
-      }
-    }
-    return count;
+  setColumnData: function (item, field) {
+    const extraString = item.getField('extra');
+    const data = this.extraFieldExtractor(extraString);
+    return data[field];
   },
 
   /**
-   * Set the custom column by parsing the extra field
-   * @param {String} extraString
+   * GSCC Extra Data Type
+   * @typedef {Object} GsccExtra
+   * @property {number} citationCount - The GS citation count
+   * @property {date} lateUpdated - The last time we pulled the data.
+   * @property {number} relevanceScore - The relative relevance of the citations
    */
-  setCitationCountLastUpdatedColumn: function (extraString) {
-    let match = '';
-    if (extraString.startsWith(this.__extraEntryPrefix)) {
-      try {
-        const regex = new RegExp(
-          String.raw`${this.__extraEntryPrefix}:(\s*\d+).\s(.*)[^ \n]`,
-          'g',
-        );
-        // meh
-        const matches = [...extraString.matchAll(regex)][0];
-        // clunky matching meh
+  /**
+   * Break apart all the variants we can think of for other uses
+   * @param {String} extraString
+   * @return {GsccExtra}
+   */
+  extraFieldExtractor: function (extraString) {
+    const parts = {
+      citationCount: 0,
+      lastUpdated: '',
+      relevanceScore: 0,
+    };
+    try {
+      // Look everywhere but always on a single line
+      const regex = new RegExp(
+        String.raw`^${this.__extraEntryPrefix}.*$`,
+        'gm',
+      );
+      const match = extraString.match(regex)[0];
 
-        const tryDate = new Date(`${matches[2]}Z`).toLocaleString();
-
-        if (tryDate !== 'Invalid Date') {
-          match = tryDate;
+      if (match) {
+        // cool, a match, let's break it up
+        let matches = match.split(' ');
+        if (matches[0] !== `GSCC:`) {
+          // Compressed string, split it
+          const splitter = matches[0].split(':');
+          matches.shift();
+          matches = splitter.concat(matches);
         }
-      } catch {
-        // dead case for weird behavior
+
+        parts.citationCount = parseInt(matches[1] ?? parts?.citationCount);
+        parts.lastUpdated = matches[2]
+          ? new Date(matches[2]).toLocaleString()
+          : parts?.lastUpdated;
+        parts.relevanceScore =
+          parseFloat(matches[3] ?? parts?.relevanceScore) || 0;
       }
+    } catch {
+      // dead case for weird behavior
     }
-    return match;
+    return parts;
   },
 
   removeFromWindow: async function (win) {
@@ -594,7 +612,11 @@ $__gscc.app = {
    */
   updateItem: function (item, citeCount) {
     const fieldExtra = item.getField('extra');
-    const buildNewCiteCount = this.buildCiteCountString(citeCount);
+    const fieldPublicationDate = item.getField('date');
+    const buildNewCiteCount = this.buildCiteCountString(
+      citeCount,
+      fieldPublicationDate,
+    );
     let revisedExtraField;
 
     if (fieldExtra.startsWith(this.__extraEntryPrefix)) {
@@ -837,7 +859,7 @@ $__gscc.app = {
    * @param {number} citeCount
    * @returns string
    */
-  buildCiteCountString: function (citeCount) {
+  buildCiteCountString: function (citeCount, publicationDate) {
     let data;
     if (citeCount < 0) {
       data = this.__noData;
@@ -847,8 +869,12 @@ $__gscc.app = {
         this.__citeCountStrLength,
       );
     }
+    const getRelevanceScore = this.calculateRelativeRelevance(
+      publicationDate,
+      citeCount,
+    );
 
-    return `${this.__extraEntryPrefix}: ${data} ${new Date().toISOString()}`;
+    return `${this.__extraEntryPrefix}: ${data} ${new Date().toISOString()} ${getRelevanceScore}`;
   },
   /**
    * Parse the raw response for citation count
@@ -872,6 +898,23 @@ $__gscc.app = {
       const citeCount = citeStr.substring(citePrefixLen);
       return parseInt(citeCount.trim());
     }
+  },
+  /**
+   * Number of citations since publication (citations / weeksSincePublication)
+   * Proposed by @c-hoffmann
+   */
+  calculateRelativeRelevance: function (date, citationCount) {
+    const publicationDate = date;
+    const weeksSincePublication = Math.ceil(
+      (new Date() - new Date(publicationDate)) / (1000 * 60 * 60 * 24 * 7),
+    );
+    const citationRatio = citationCount / weeksSincePublication;
+    const formattedRatio = citationRatio.toFixed(2);
+
+    if (isNaN(formattedRatio)) {
+      return 0;
+    }
+    return formattedRatio;
   },
 };
 

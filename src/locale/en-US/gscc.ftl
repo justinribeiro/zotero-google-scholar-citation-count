@@ -2,6 +2,7 @@ gscc-menuitem =
   .label = Update Google Scholar citation count
 gscc-column-name = Citation Count
 gscc-lastupdated-column-name = Citation Count Last Updated Date
+gscc-relevancescore-column-name = Citation Count Relative Relevance Score
 gscc-update-all =
   .label = Update All Google Scholar citation counts.
 gscc-recapatcha-alert = Please enter the Captcha on the page that will now open and then re-try updating the citations, or wait a while to get unblocked by Google if the Captcha is not present.
