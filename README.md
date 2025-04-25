@@ -4,18 +4,22 @@
 
 [![Zotero +v7.0](https://img.shields.io/badge/Zotero-%3E%3D%205.x-brightgreen)](https://www.zotero.org/)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
-![Test Coverage - Statements](https://img.shields.io/badge/statements-66.36%25-red.svg)
-![Test Coverage - Branches](https://img.shields.io/badge/branches-59.45%25-red.svg)
-![Test Coverage - Functions](https://img.shields.io/badge/functions-69.04%25-red.svg)
-![Test Coverage - Lines](https://img.shields.io/badge/lines-67.44%25-red.svg)
+![Test Coverage - Statements](https://img.shields.io/badge/statements-69.23%25-red.svg)
+![Test Coverage - Branches](https://img.shields.io/badge/branches-59.79%25-red.svg)
+![Test Coverage - Functions](https://img.shields.io/badge/functions-67.30%25-red.svg)
+![Test Coverage - Lines](https://img.shields.io/badge/lines-70.14%25-red.svg)
 
 ## Download Latest Version
 
-Zotero 7 - [![v4.2.1](https://img.shields.io/badge/Download-v4.2.1-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.2.1/zotero-google-scholar-citation-count-4.2.1.xpi)
+Zotero 7 - [![v4.3.0](https://img.shields.io/badge/Download-v4.3.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.3.0/zotero-google-scholar-citation-count-4.3.0.xpi)
 
 Zotero 6 - [![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
 
 ## What's New
+_v4.3.0_ - Automatically pull citations on item addition (enabled via preference); adds new relative relevance score column (see [issue #28](https://github.com/justinribeiro/zotero-google-scholar-citation-count/issues/28)); plugin now shows small popup when pulling citations.
+
+![New Preferences for auto-pulling citation count on add](https://github.com/user-attachments/assets/5eb3bc94-f0e1-42a9-bf3e-6f72f07ed595)
+
 _v4.2.0_ - Adds ability to set custom Google Scholar endpoint; removes HTML from title search strings; saves column width state per Zotero documentation.
 
 ![New Preferences for setting custom Google Scholar API endpoint](https://github.com/user-attachments/assets/1e499d4d-6fc5-4c2e-aa23-440df4554fa5)

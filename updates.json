@@ -3,9 +3,9 @@
     "justin@justinribeiro.com": {
       "updates": [
         {
-          "version": "4.2.1",
-          "update_link": "https://github.com/justinribeiro/zotero-google-scholar-citation-count/releases/download/v4.2.1/zotero-google-scholar-citation-count-4.2.1.xpi",
-          "update_hash": "sha256:5e505a71f3a21cc6c67ff7ed9081c04d41849981e12da3f34327323a61bc92eb",
+          "version": "4.3.0",
+          "update_link": "https://github.com/justinribeiro/zotero-google-scholar-citation-count/releases/download/v4.3.0/zotero-google-scholar-citation-count-4.3.0.xpi",
+          "update_hash": "sha256:36b02a09da29ecd245c7a83f7f5ae296a7cb2377ed45b2d36e2090c2b03285e0",
           "applications": {
             "zotero": {
               "strict_min_version": "6.999",
