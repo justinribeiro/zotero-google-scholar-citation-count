@@ -1,3 +1,4 @@
+'use strict';
 /**
  * A short hand typedef for general use, not exhaustive of the Zotero Schema
  * @typedef {Object} ZoteroGenericItem
@@ -35,9 +36,7 @@
  * @property {String} creatorType
  */
 
-Components.utils.import('resource://gre/modules/Services.jsm');
-
-$__gscc = {};
+const $__gscc = {};
 
 $__gscc.debugger = {
   /**

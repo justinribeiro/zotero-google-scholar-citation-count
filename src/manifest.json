@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Google Scholar Citation Count",
-  "version": "4.3.0",
+  "version": "5.0.0",
   "description": "Zotero plugin for fetching numbers of citations from Google Scholar.",
   "homepage_url": "https://github.com/justinribeiro/zotero-google-scholar-citation-count",
   "author": "Justin Ribeiro",
@@ -13,8 +13,8 @@
     "zotero": {
       "id": "justin@justinribeiro.com",
       "update_url": "https://raw.githubusercontent.com/justinribeiro/zotero-google-scholar-citation-count/master/update.json",
-      "strict_min_version": "6.999",
-      "strict_max_version": "7.*.*"
+      "strict_min_version": "7.999",
+      "strict_max_version": "8.*"
     }
   }
 }
