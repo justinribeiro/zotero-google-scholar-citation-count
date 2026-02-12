@@ -1,0 +1,16 @@
+gscc-menuitem =
+  .label = 更新 Google 學術引用次數
+gscc-column-name = 引用次數
+gscc-lastupdated-column-name = 引用計數上次更新日期
+gscc-relevancescore-column-name = 引用計數相對相關性得分
+gscc-update-all =
+  .label = 更新所有 Google 學術引用次數。
+gscc-recapatcha-alert = 請在現在打開的頁面上輸入驗證碼，然後重試更新引用，或者如果沒有出現驗證碼，請等待一段時間以解除 Google 的限制。
+gscc-citedByPrefix =  引用自
+gscc-lackPermissions = 您沒有權限編輯此庫。
+gscc-unSupportedEntryType = 不支持更新此類型條目的引用。
+gscc-unSupportedGroupCollection =
+  .label = 尚未實現對組的更新。
+gscc-invalidGoogleScholarURL = Google 學術的 URL 格式似乎不正確；請檢查“設置 > Google 學術引用計數”以驗證您的 Google 學術 URL。
+gscc-progresswindow-title = 引用次數已更新
+gscc-progresswindow-desc = 引用總數
