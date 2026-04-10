@@ -11,7 +11,7 @@
 
 ## Download Latest Version
 
-Zotero 9 - [![v6.0.0](https://img.shields.io/badge/Download-v5.0.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v6.0.0/zotero-google-scholar-citation-count-6.0.0.xpi)
+Zotero 9 - [![v6.0.0](https://img.shields.io/badge/Download-v6.0.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v6.0.0/zotero-google-scholar-citation-count-6.0.0.xpi)
 
 Zotero 8 - [![v5.0.0](https://img.shields.io/badge/Download-v5.0.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v5.0.0/zotero-google-scholar-citation-count-5.0.0.xpi)
 
