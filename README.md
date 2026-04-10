@@ -2,7 +2,7 @@
 
 > Add-on that fetches numbers of citations of your Zotero collection items from Google Scholar, adding the citation count to the extra column for reference and sorting.
 
-[![Zotero +7.0](https://img.shields.io/badge/Zotero-%3E%3D%205.x-brightgreen)](https://www.zotero.org/)
+[![Zotero +6.0](https://img.shields.io/badge/Zotero-%3E%3D%205.x-brightgreen)](https://www.zotero.org/)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 ![Test Coverage - Statements](https://img.shields.io/badge/statements-69.23%25-red.svg)
 ![Test Coverage - Branches](https://img.shields.io/badge/branches-59.79%25-red.svg)
@@ -11,6 +11,8 @@
 
 ## Download Latest Version
 
+Zotero 9 - [![v6.0.0](https://img.shields.io/badge/Download-v5.0.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v6.0.0/zotero-google-scholar-citation-count-6.0.0.xpi)
+
 Zotero 8 - [![v5.0.0](https://img.shields.io/badge/Download-v5.0.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v5.0.0/zotero-google-scholar-citation-count-5.0.0.xpi)
 
 Zotero 7 - [![v4.3.0](https://img.shields.io/badge/Download-v4.3.0-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v4.3.0/zotero-google-scholar-citation-count-4.3.0.xpi)
@@ -18,6 +20,8 @@ Zotero 7 - [![v4.3.0](https://img.shields.io/badge/Download-v4.3.0-orange?style=
 Zotero 6 - [![v3.2.2](https://img.shields.io/badge/Download-v3.2.2-orange?style=for-the-badge)](https://github.com/justinribeiro/zotero-scholar-citations/releases/download/v3.2.2/zotero-google-scholar-citation-count-3.2.2.xpi)
 
 ## What's New
+_v6.0.0_ - Support for Zotero 9.
+
 _v5.0.0_ - Support for Zotero 8.
 
 _v4.3.0_ - Automatically pull citations on item addition (enabled via preference); adds new relative relevance score column (see [issue #28](https://github.com/justinribeiro/zotero-google-scholar-citation-count/issues/28)); plugin now shows small popup when pulling citations.
