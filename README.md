@@ -77,7 +77,24 @@ Google Scholar is a pain in the neck. Google makes no API available, so sometime
 
 ![the dreaded recaptcha](https://user-images.githubusercontent.com/643503/135678671-86d15772-c187-4043-9bc1-2f3725e1f0a5.png)
 
-In this case, complete the recaptcha and close the resulting window and run your citation count update again.
+Automatic JavaScript checks run in a hidden browser without opening tabs or
+windows. If Google presents an explicit CAPTCHA, complete it in the window that
+opens. The plugin reads the result for the original search and closes that
+window after success. Closing it yourself cancels the lookup. Existing counts
+are kept if verification fails or times out, and the plugin displays a message.
+
+## Testing
+
+Run `npm ci`, then `TZ=America/Los_Angeles npm test -- --runInBand`. The existing
+date fixtures expect that time zone. The suite covers silent HTTP 200 verification
+responses, hidden-browser cleanup, CAPTCHA cancellation, request timeouts and
+preserving existing counts on failure.
+
+The optional `python3 native_viewer_test.py` check uses a disposable Zotero profile
+and a local HTTP fixture. It verifies that JavaScript redirects execute in a
+hidden browser, the count is saved to the temporary database, existing Extra text
+is preserved, and no visible windows open. Set `ZOTERO_BIN` if Zotero is not in the
+default location. This check does not access your normal library or query Google.
 
 ## I can't get past the recaptcha!
 
