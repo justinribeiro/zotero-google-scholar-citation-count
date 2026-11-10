@@ -495,7 +495,7 @@ $__gscc.app = {
     if (useAutoCountUpdate && event === 'add' && type === 'item') {
       $__gscc.debugger.info(`useAutoSearch running on new add!`);
       const newItems = await Zotero.Items.getAsync(ids);
-      await $__gscc.app.processItems(newItems);
+      await $__gscc.app.processItems(newItems, { automatic: true });
     }
   },
 
@@ -661,7 +661,21 @@ $__gscc.app = {
    * fetch and process data and update the selected entries from Zotero
    * @param {ZoteroGenericItem[]} items
    */
-  processItems: async function (items) {
+  processItems: async function (items, { automatic = false } = {}) {
+    // Item-add notifications also include attachments, notes and annotations.
+    // Selection guidance belongs to explicit commands, once per empty batch.
+    items = items.filter(
+      (item) =>
+        (!item.isRegularItem || item.isRegularItem()) &&
+        this.hasRequiredFields(item),
+    );
+    if (!items.length) {
+      if (!automatic) {
+        await this.showStatus('gscc-status-select-item');
+      }
+      return;
+    }
+
     const useQueue = Zotero.Prefs.get(
       'extensions.zotero.gscc.useRandomWait',
       $__gscc.app.__preferenceDefaults.useRandomWait,
@@ -701,43 +715,34 @@ $__gscc.app = {
      * @param {ZoteroGenericItem} item
      */
     for (const [index, item] of items.entries()) {
-      if (!this.hasRequiredFields(item)) {
-        await this.showStatus('gscc-status-select-item');
-        $__gscc.debugger.warn(
-          `skipping item '${item.getField(
-            'title',
-          )}': empty title or missing creator information'`,
+      // check the prefs in case user override, don't use it on the first item
+      // either way
+      if (useQueue && index > 0) {
+        const queueTime = $__gscc.util.randomInteger(
+          queueMinWaitMs,
+          queueMaxWaitMs,
         );
-      } else {
-        // check the prefs in case user override, don't use it on the first item
-        // either way
-        if (useQueue && index > 0) {
-          const queueTime = $__gscc.util.randomInteger(
-            queueMinWaitMs,
-            queueMaxWaitMs,
-          );
 
-          $__gscc.debugger.info(`queued for ${queueTime} ms later.`);
-          await $__gscc.util.sleep(queueTime);
-        }
+        $__gscc.debugger.info(`queued for ${queueTime} ms later.`);
+        await $__gscc.util.sleep(queueTime);
+      }
 
-        try {
-          const response = await this.retrieveCitationData(item);
-          const completed = await this.processCitationResponse(
-            response.status,
-            response.responseText,
-            1000,
-            response.responseURL,
-            item,
-          );
-          if (completed === false) break;
-        } catch (error) {
-          // All callers, including automatic updates and collections, need
-          // feedback when a request or database save fails.
-          $__gscc.debugger.error(String(error));
-          await this.showStatus('gscc-status-failed');
-          break;
-        }
+      try {
+        const response = await this.retrieveCitationData(item);
+        const completed = await this.processCitationResponse(
+          response.status,
+          response.responseText,
+          1000,
+          response.responseURL,
+          item,
+        );
+        if (completed === false) break;
+      } catch (error) {
+        // All callers, including automatic updates and collections, need
+        // feedback when a request or database save fails.
+        $__gscc.debugger.error(String(error));
+        await this.showStatus('gscc-status-failed');
+        break;
       }
     }
   },

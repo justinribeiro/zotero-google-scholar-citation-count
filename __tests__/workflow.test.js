@@ -151,7 +151,7 @@ describe('User commands and batch lookup boundaries', () => {
     await gs.app.onItemNotify('modify', 'item', [1]);
     expect(process).not.toHaveBeenCalled();
     await gs.app.onItemNotify('add', 'item', [1]);
-    expect(process).toHaveBeenCalledWith([item]);
+    expect(process).toHaveBeenCalledWith([item], { automatic: true });
   });
 
   test('window registration connects the command and all three citation columns', async () => {

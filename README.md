@@ -1,5 +1,9 @@
 # Google Scholar Citation Count for Zotero
 
+Automatic additions skip attachments, notes, annotations, and bibliographic
+items missing a title or creator without selection notifications. Manual lookups
+with no eligible items show one selection reminder for the entire batch.
+
 > Add-on that fetches numbers of citations of your Zotero collection items from Google Scholar, adding the citation count to the extra column for reference and sorting.
 
 [![Zotero +6.0](https://img.shields.io/badge/Zotero-%3E%3D%205.x-brightgreen)](https://www.zotero.org/)
