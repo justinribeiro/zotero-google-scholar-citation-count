@@ -179,12 +179,17 @@ describe('Verify $__gscc.app sanity', () => {
     expect(warn).toHaveBeenCalled();
   });
 
-  it('processCitationResponse() 200 should open window on recaptcha', () => {
+  it('processCitationResponse() 200 should open window on recaptcha', async () => {
     const warn = jest.spyOn(base.$__gscc.debugger, 'warn');
-    const openWindow = jest.spyOn(base.$__gscc.util, 'openRecaptchaWindow');
+    jest
+      .spyOn(base.$__gscc.util, 'loadSearchInBackground')
+      .mockResolvedValue({ needsInteraction: true });
+    const openWindow = jest
+      .spyOn(base.$__gscc.util, 'openRecaptchaWindow')
+      .mockResolvedValue(null);
     const item = { ...singleItemNoCount.data };
     const targetUrl = base.$__gscc.app.generateItemUrl(singleItemNoCount.data);
-    base.$__gscc.app.processCitationResponse(
+    await base.$__gscc.app.processCitationResponse(
       200,
       hasRecaptcha.data,
       null,
@@ -293,13 +298,23 @@ describe('Verify $__gscc.app sanity', () => {
     expect(info).toHaveBeenCalledTimes(1);
   });
 
-  it('processItems burns correctly', async () => {
-    const info = jest.spyOn(base.$__gscc.debugger, 'info');
-    jest.spyOn($__gscc.app, 'retrieveCitationData');
-    jest.spyOn($__gscc.app, 'processCitationResponse');
-    await base.$__gscc.app.processItems(itemsList);
-
-    expect(info).toHaveBeenCalledTimes(6);
+  it('processItems requests each eligible item and waits between requests', async () => {
+    const request = jest
+      .spyOn(base.$__gscc.app, 'retrieveCitationData')
+      .mockResolvedValue({ status: 200, responseText: hasCitation.data });
+    const process = jest
+      .spyOn(base.$__gscc.app, 'processCitationResponse')
+      .mockResolvedValue(true);
+    const sleep = jest.spyOn(base.$__gscc.util, 'sleep').mockResolvedValue();
+    await base.$__gscc.app.processItems([...itemsList, ...itemsList]);
+    expect(request).toHaveBeenCalledTimes(
+      2 * itemsList.filter((i) => base.$__gscc.app.hasRequiredFields(i)).length,
+    );
+    expect(process).toHaveBeenCalledTimes(request.mock.calls.length);
+    expect(sleep).toHaveBeenCalled();
+    request.mockRestore();
+    process.mockRestore();
+    sleep.mockRestore();
   });
 
   it('getApiEndpoint handles bad data URL', async () => {

@@ -14,3 +14,15 @@ gscc-unSupportedGroupCollection =
 gscc-invalidGoogleScholarURL = The Google Scholar URL appears malformed; please check "Settings > Google Scholar Citation Count" to verify your Google Scholar URL.
 gscc-progresswindow-title = Citation Count Updated
 gscc-progresswindow-desc = Citation Total
+
+gscc-status-title = Google Scholar citation count
+gscc-status-looking-up = Looking up citation counts in Google Scholar…
+gscc-status-select-item = Select a bibliographic item with a title and at least one author.
+gscc-status-blocked = Google Scholar is still blocking this lookup. The existing count was kept. Try again later.
+gscc-status-background = Loading Google Scholar results in the background…
+gscc-status-captcha = Google Scholar is asking you to solve a CAPTCHA. Complete it in the window that opens, or close it to cancel.
+gscc-status-incomplete = Google Scholar did not finish loading, or verification was cancelled. The existing count was kept.
+gscc-status-unreadable = Could not read a citation count from the Scholar result. The existing count was kept.
+gscc-status-no-result = No matching Scholar result was returned. The existing count was kept.
+gscc-status-rate-limited = Google Scholar is limiting requests. Wait before trying again. The existing count was kept.
+gscc-status-failed = Google Scholar lookup failed. The existing count was kept. Try again later.

@@ -91,9 +91,15 @@ $__gscc.util = {
    */
   request: async function (opts) {
     $__gscc.debugger.info(`${opts.method} ${opts.url}`);
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open(opts.method, opts.url);
+      xhr.timeout = 30000;
+      xhr.ontimeout = () => reject(new Error('The Scholar request timed out'));
+      xhr.onerror = () =>
+        reject(new Error('Could not connect to Google Scholar'));
+      xhr.onabort = () =>
+        reject(new Error('The Scholar request was cancelled'));
       xhr.onreadystatechange = () => {
         if (xhr.readyState === 4) {
           resolve(xhr);
@@ -133,11 +139,8 @@ $__gscc.util = {
    * @return {boolean}
    */
   hasCitationResults: function (source) {
-    return (
-      source.includes('class="gs_r gs_or gs_scl"') ||
-      source.includes('class="gs_fl gs_flb gs_invis"') ||
-      source.includes('class="gs_fl gs_flb"')
-    );
+    const doc = new DOMParser().parseFromString(source, 'text/html');
+    return !!doc.querySelector('.gs_r.gs_or.gs_scl, .gs_fl.gs_flb');
   },
   /**
    * Add zero's to a given string
@@ -154,31 +157,136 @@ $__gscc.util = {
    * @param {string} targetUrl The url which caused the recaptcha
    * @return {Promise}
    */
-  openRecaptchaWindow: async function (targetUrl) {
-    const window = Zotero.getMainWindow();
-
-    const alertMessage = await window.document.l10n.formatValue(
-      'gscc-recapatcha-alert',
+  isVerificationPage: function (source, responseURL = '') {
+    if (this.hasRecaptcha(source)) return true;
+    try {
+      const url = new URL(responseURL);
+      if (
+        (url.hostname === 'google.com' ||
+          url.hostname.endsWith('.google.com')) &&
+        /^\/(sgsync|sorry)(\/|$)/.test(url.pathname)
+      )
+        return true;
+    } catch {}
+    return (
+      /<title[^>]*>\s*Verifying(?:\.{3}|…)?\s*<\/title>/i.test(source) ||
+      /id=["']captcha-form["']/i.test(source)
     );
-    window.alert(alertMessage);
+  },
 
-    let intervalWindowCloseState;
+  readViewerPage: async function (browser) {
+    const page = browser?.browsingContext?.currentWindowGlobal;
+    if (!page) return null;
+    const url = page.documentURI.spec;
+    let timer;
+    try {
+      // basicViewer switches HTTP pages to a content process in Zotero 10.
+      // PageData is Zotero's own reader for documents in that process.
+      const html = await Promise.race([
+        page.getActor('PageData').sendQuery('documentHTML'),
+        new Promise((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error('Browser page read timed out')),
+            3000,
+          );
+        }),
+      ]);
+      // Navigation may complete while the actor reply is in flight. Never
+      // combine one page's HTML with another page's URL.
+      if (browser.browsingContext.currentWindowGlobal !== page) return null;
+      return { url, html };
+    } finally {
+      clearTimeout(timer);
+    }
+  },
 
-    const checkWindowClosed = (modalWindowHandle, resolve) => {
-      if (modalWindowHandle?.closed) {
-        $__gscc.debugger.info('recaptcha window closed');
-        clearInterval(intervalWindowCloseState);
-        resolve();
-      } else {
-        $__gscc.debugger.info(`waiting for recaptcha user complete...`);
+  matchingSearchResult: function (page, requested) {
+    if (!page) return null;
+    const url = new URL(page.url);
+    if (
+      url.origin !== requested.origin ||
+      url.pathname !== '/scholar' ||
+      url.searchParams.get('q') !== requested.searchParams.get('q')
+    )
+      return null;
+    const doc = new DOMParser().parseFromString(page.html, 'text/html');
+    if (
+      this.isVerificationPage(page.html, page.url) ||
+      !(
+        this.hasCitationResults(page.html) ||
+        doc.querySelector('#gs_res_ccl_mid')
+      )
+    )
+      return null;
+    return { status: 200, responseText: page.html, responseURL: page.url };
+  },
+
+  loadSearchInBackground: async function (targetUrl) {
+    const { HiddenBrowser } = ChromeUtils.importESModule(
+      'chrome://zotero/content/HiddenBrowser.mjs',
+    );
+    const browser = new HiddenBrowser({ allowJavaScript: true });
+    const requested = new URL(targetUrl);
+    try {
+      if (!(await browser.load(targetUrl))) return null;
+      const deadline = Date.now() + 20000;
+      while (Date.now() < deadline) {
+        try {
+          const page = await this.readViewerPage(browser);
+          const response = this.matchingSearchResult(page, requested);
+          if (response) return response;
+          if (page) {
+            const doc = new DOMParser().parseFromString(page.html, 'text/html');
+            // A script reference alone is not a request for user input.
+            if (
+              doc.querySelector(
+                '#captcha-form, form[action*="/sorry/"], .g-recaptcha',
+              )
+            ) {
+              return { needsInteraction: true };
+            }
+          }
+        } catch (error) {
+          $__gscc.debugger.warn('Waiting for Scholar in background: ' + error);
+        }
+        await this.sleep(500);
       }
-    };
+      return null;
+    } finally {
+      browser.destroy();
+    }
+  },
 
-    const recaptchaWindow = Zotero.openInViewer(targetUrl);
-
-    return new Promise((resolve) =>
-      checkWindowClosed(recaptchaWindow, resolve),
-    );
+  openRecaptchaWindow: async function (targetUrl) {
+    const requested = new URL(targetUrl);
+    const viewer = Zotero.openInViewer(targetUrl, { allowJavaScript: true });
+    if (!viewer)
+      throw new Error('Could not open the Google Scholar verification window');
+    // Use the document that executed Google's verification script. Repeating
+    // the XHR can send us straight back to the same verification page.
+    const deadline = Date.now() + 120000;
+    let lastReadError;
+    while (!viewer.closed && Date.now() < deadline) {
+      try {
+        const browser = viewer.document.querySelector('browser');
+        const page = await this.readViewerPage(browser);
+        const response = this.matchingSearchResult(page, requested);
+        if (response) {
+          viewer.close();
+          return response;
+        }
+      } catch (error) {
+        // Navigation can briefly make the content document inaccessible.
+        if (lastReadError !== String(error)) {
+          lastReadError = String(error);
+          $__gscc.debugger.warn(
+            'Waiting to read Scholar browser: ' + lastReadError,
+          );
+        }
+      }
+      await this.sleep(500);
+    }
+    return null;
   },
 };
 
@@ -269,6 +377,19 @@ $__gscc.app = {
    * Return the a resuable progress window for user updates
    * @returns Zotero.ProgressWindow
    */
+  showStatus: async function (messageID) {
+    const { l10n } = Zotero.getMainWindow().document;
+    const [title, message] = await Promise.all([
+      l10n.formatValue('gscc-status-title'),
+      l10n.formatValue(messageID),
+    ]);
+    const popup = new Zotero.ProgressWindow();
+    popup.changeHeadline(title);
+    popup.addDescription(message);
+    popup.show();
+    popup.startCloseTimer(8000);
+  },
+
   getProgressWindow: function () {
     if (!$__gscc.app.progressWindow) {
       $__gscc.app.progressWindow = new Zotero.ProgressWindow();
@@ -374,7 +495,7 @@ $__gscc.app = {
     if (useAutoCountUpdate && event === 'add' && type === 'item') {
       $__gscc.debugger.info(`useAutoSearch running on new add!`);
       const newItems = await Zotero.Items.getAsync(ids);
-      await $__gscc.app.processItems(newItems);
+      await $__gscc.app.processItems(newItems, { automatic: true });
     }
   },
 
@@ -514,7 +635,13 @@ $__gscc.app = {
       window.alert(permissionAlertString);
       return;
     }
-    await this.processItems(zoteroPane.getSelectedItems());
+    await this.showStatus('gscc-status-looking-up');
+    try {
+      await this.processItems(zoteroPane.getSelectedItems());
+    } catch (error) {
+      $__gscc.debugger.error(String(error));
+      await this.showStatus('gscc-status-failed');
+    }
   },
   updateGroup: async function () {
     const window = Zotero.getMainWindow();
@@ -534,7 +661,21 @@ $__gscc.app = {
    * fetch and process data and update the selected entries from Zotero
    * @param {ZoteroGenericItem[]} items
    */
-  processItems: async function (items) {
+  processItems: async function (items, { automatic = false } = {}) {
+    // Item-add notifications also include attachments, notes and annotations.
+    // Selection guidance belongs to explicit commands, once per empty batch.
+    items = items.filter(
+      (item) =>
+        (!item.isRegularItem || item.isRegularItem()) &&
+        this.hasRequiredFields(item),
+    );
+    if (!items.length) {
+      if (!automatic) {
+        await this.showStatus('gscc-status-select-item');
+      }
+      return;
+    }
+
     const useQueue = Zotero.Prefs.get(
       'extensions.zotero.gscc.useRandomWait',
       $__gscc.app.__preferenceDefaults.useRandomWait,
@@ -574,33 +715,34 @@ $__gscc.app = {
      * @param {ZoteroGenericItem} item
      */
     for (const [index, item] of items.entries()) {
-      if (!this.hasRequiredFields(item)) {
-        $__gscc.debugger.warn(
-          `skipping item '${item.getField(
-            'title',
-          )}': empty title or missing creator information'`,
+      // check the prefs in case user override, don't use it on the first item
+      // either way
+      if (useQueue && index > 0) {
+        const queueTime = $__gscc.util.randomInteger(
+          queueMinWaitMs,
+          queueMaxWaitMs,
         );
-      } else {
-        // check the prefs in case user override, don't use it on the first item
-        // either way
-        if (useQueue && index > 0) {
-          const queueTime = $__gscc.util.randomInteger(
-            queueMinWaitMs,
-            queueMaxWaitMs,
-          );
 
-          $__gscc.debugger.info(`queued for ${queueTime} ms later.`);
-          await $__gscc.util.sleep(queueTime);
-        }
+        $__gscc.debugger.info(`queued for ${queueTime} ms later.`);
+        await $__gscc.util.sleep(queueTime);
+      }
 
+      try {
         const response = await this.retrieveCitationData(item);
-        await this.processCitationResponse(
+        const completed = await this.processCitationResponse(
           response.status,
           response.responseText,
           1000,
           response.responseURL,
           item,
         );
+        if (completed === false) break;
+      } catch (error) {
+        // All callers, including automatic updates and collections, need
+        // feedback when a request or database save fails.
+        $__gscc.debugger.error(String(error));
+        await this.showStatus('gscc-status-failed');
+        break;
       }
     }
   },
@@ -609,7 +751,7 @@ $__gscc.app = {
    * @param {ZoteroGenericItem} item
    * @param {number} citeCount
    */
-  updateItem: function (item, citeCount) {
+  updateItem: async function (item, citeCount) {
     const fieldExtra = item.getField('extra');
     const fieldPublicationDate = item.getField('date');
     const buildNewCiteCount = this.buildCiteCountString(
@@ -637,14 +779,16 @@ $__gscc.app = {
     item.setField('extra', revisedExtraField);
 
     try {
-      item.saveTx();
+      await item.saveTx();
     } catch (e) {
+      item.setField('extra', fieldExtra);
       $__gscc.debugger.error(
         `could not update extra field with citation count: ${e}`,
       );
+      throw e;
     }
 
-    this.openProgressWindow(citeCount, item.getField('title'));
+    await this.openProgressWindow(citeCount, item.getField('title'));
   },
   /**
    * Show the progress window pop-up with the latest change
@@ -691,72 +835,70 @@ $__gscc.app = {
     requestRetry,
     targetUrl,
     item,
+    _callback = null,
+    verificationAttempted = false,
   ) {
     $__gscc.debugger.info(`Request Status: ${requestStatus}`);
-    let retryResponse;
-    switch (requestStatus) {
-      case 200:
-        if (!$__gscc.util.hasRecaptcha(requestData)) {
-          if ($__gscc.util.hasCitationResults(requestData)) {
-            $__gscc.debugger.info(
-              `Google Scholar returned search result, parsing cite count`,
-            );
-            this.updateItem(item, this.getCiteCount(requestData));
-          } else {
-            $__gscc.debugger.warn(
-              `Google Scholar found no search result for requested item: ${targetUrl}`,
-            );
-          }
-        } else {
-          $__gscc.debugger.warn(
-            'Google Scholar asking for recaptcha, opening window.',
-          );
-          await $__gscc.util.openRecaptchaWindow(targetUrl);
-          retryResponse = await this.retrieveCitationData(item);
-          await this.processCitationResponse(
-            retryResponse.status,
-            retryResponse.responseText,
-            1000,
-            retryResponse.responseURL,
-            item,
-          );
-        }
-        break;
-      case 403:
-        $__gscc.debugger.warn(
-          'Google Scholar thinks we are sus, opening window.',
-        );
-        await $__gscc.util.openRecaptchaWindow(targetUrl);
-        retryResponse = await this.retrieveCitationData(item);
-        await this.processCitationResponse(
-          retryResponse.status,
-          retryResponse.responseText,
-          1000,
-          retryResponse.responseURL,
-          item,
-        );
-        break;
-      case 404:
-        $__gscc.debugger.error(
-          `Google Scholar could not find the requested page.`,
-        );
-        break;
-      case 429:
-        if (requestRetry) {
-          $__gscc.debugger.warn(
-            `Google Scholar asks for retry after ${requestRetry} seconds, re-queuing request.`,
-          );
-          await $__gscc.util.sleep(requestRetry * 1000);
-          await this.retrieveCitationData(item);
-        }
-        break;
-      default:
-        $__gscc.debugger.error(
-          `Google Scholar fetch failed for item: ${targetUrl}`,
-        );
-        break;
+    if (
+      requestStatus === 403 ||
+      (requestStatus === 200 &&
+        $__gscc.util.isVerificationPage(requestData, targetUrl))
+    ) {
+      $__gscc.debugger.warn('Google Scholar requires verification.');
+      if (verificationAttempted) {
+        await this.showStatus('gscc-status-blocked');
+        return false;
+      }
+      await this.showStatus('gscc-status-background');
+      const searchURL = await this.generateItemUrl(item);
+      let response = await $__gscc.util.loadSearchInBackground(searchURL);
+      if (response?.needsInteraction) {
+        await this.showStatus('gscc-status-captcha');
+        response = await $__gscc.util.openRecaptchaWindow(searchURL);
+      }
+      if (!response) {
+        await this.showStatus('gscc-status-incomplete');
+        return false;
+      }
+      return this.processCitationResponse(
+        response.status,
+        response.responseText,
+        null,
+        response.responseURL,
+        item,
+        null,
+        true,
+      );
     }
+    if (requestStatus === 200) {
+      if ($__gscc.util.hasCitationResults(requestData)) {
+        const count = this.getCiteCount(requestData);
+        if (!Number.isInteger(count) || count < 0) {
+          await this.showStatus('gscc-status-unreadable');
+          return null;
+        }
+        await this.updateItem(item, count);
+        return true;
+      }
+      $__gscc.debugger.warn(
+        `Google Scholar found no search result for requested item: ${targetUrl}`,
+      );
+      await this.showStatus('gscc-status-no-result');
+      return null;
+    }
+    if (requestStatus === 429) {
+      if (requestRetry)
+        $__gscc.debugger.warn('Google Scholar is rate limiting requests.');
+      await this.showStatus('gscc-status-rate-limited');
+      return false;
+    }
+    $__gscc.debugger.error(
+      `Google Scholar lookup failed: HTTP ${requestStatus}`,
+    );
+    await this.showStatus('gscc-status-failed');
+    return false;
   },
+
   /**
    * Validate and return the Google Scholar URL API target
    * @returns {URL|null}
